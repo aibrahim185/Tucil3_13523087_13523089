@@ -1,6 +1,6 @@
 #pragma once
 
-#include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
@@ -41,7 +41,7 @@ struct Board {
     int pixel_padding;
     Coordinates exit_coordinates;
     
-    vector<vector<bool>> is_occupied;
+    vector<vector<char>> grid;
     int piece_padding = 1;
 };
 
@@ -50,8 +50,8 @@ struct PieceMove {
     Coordinates new_coordinates;
 };
 
-class MainScene : public Node2D {
-    GDCLASS(MainScene, Node2D)
+class MainScene : public Control {
+    GDCLASS(MainScene, Control)
 
 private:
     vector<Piece> pieces;
@@ -71,9 +71,9 @@ private:
     void _on_solve_button_pressed();
     void _on_reset_button_pressed();
     
-    FileDialog* _load_folder_dialog;
+    FileDialog* _load_file_dialog;
     void _on_load_button_pressed();
-    void _on_load_folder_selected(const String& path);
+    void _on_load_file_selected(const String& path);
     void _on_load_dialog_canceled();
 
     bool load_input(String path, vector<Piece>& pieces, Board& board);

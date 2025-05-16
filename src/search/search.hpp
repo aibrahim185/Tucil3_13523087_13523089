@@ -1,6 +1,19 @@
 #pragma once
 
-struct Search {
+#include <vector>
+#include <chrono>
 
-    virtual void search();
+struct PieceMove;
+
+using namespace std;
+
+struct Solution {
+    vector<PieceMove> moves;
+    chrono::steady_clock::time_point duration;
+    int node;
+    bool is_solved;
+};
+
+struct Search {
+    virtual Solution search();
 };

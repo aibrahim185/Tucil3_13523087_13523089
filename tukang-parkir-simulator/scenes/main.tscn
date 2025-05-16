@@ -442,8 +442,7 @@ sources/2 = SubResource("TileSetAtlasSource_h2yge")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1bvp3"]
 
-[node name="Main" type="Control"]
-layout_mode = 3
+[node name="Main" type="MainScene"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -475,8 +474,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="SolveButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 7
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -491,8 +489,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_1bvp3")
 text = "Solve"
 
 [node name="LoadButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 7
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -507,8 +504,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_1bvp3")
 text = "Load"
 
 [node name="ResetButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 7
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -524,6 +520,3 @@ text = "Reset"
 
 [connection signal="button_down" from="Object/Button" to="Object" method="_on_button_button_down"]
 [connection signal="button_up" from="Object/Button" to="Object" method="_on_button_button_up"]
-[connection signal="pressed" from="SolveButton" to="." method="_on_SolveButton_pressed"]
-[connection signal="pressed" from="LoadButton" to="." method="_on_SolveButton_pressed"]
-[connection signal="pressed" from="ResetButton" to="." method="_on_SolveButton_pressed"]

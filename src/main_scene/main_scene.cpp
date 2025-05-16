@@ -9,7 +9,7 @@ void MainScene::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_reset_button_pressed"), &MainScene::_on_reset_button_pressed);
     ClassDB::bind_method(D_METHOD("_on_load_button_pressed"), &MainScene::_on_load_button_pressed);
 
-    ClassDB::bind_method(D_METHOD("_on_load_folder_selected", "path"), &MainScene::_on_load_folder_selected);
+    ClassDB::bind_method(D_METHOD("_on_load_file_selected", "path"), &MainScene::_on_load_file_selected);
     ClassDB::bind_method(D_METHOD("_on_load_dialog_canceled"), &MainScene::_on_load_dialog_canceled);
 }
 
@@ -27,8 +27,8 @@ void MainScene::_notification(int p_what) {
             load_button = get_node<Button>("LoadButton");
             load_button->connect("pressed", Callable(this, "_on_load_button_pressed"));
 
-            time = get_node<Label>("TimeLabel");
-            time->set_text("Time: 0.0s");
+            // time = get_node<Label>("TimeLabel");
+            // time->set_text("Time: 0.0s");
 
             break;
         }
@@ -52,10 +52,29 @@ void MainScene::_on_reset_button_pressed() {
 void MainScene::_on_load_button_pressed() {
     UtilityFunctions::print("Load button pressed!");
 
-    
+    if (!_load_file_dialog) {
+		_load_file_dialog = memnew(FileDialog);
+		_load_file_dialog->set_name("LoadFileDialog");
+		add_child(_load_file_dialog);
+
+		_load_file_dialog->connect("file_selected", Callable(this, "_on_load_file_selected"));
+		_load_file_dialog->connect("canceled", Callable(this, "_on_load_dialog_canceled"));
+
+		UtilityFunctions::print("Created and added LoadfileDialog node.");
+	}
+
+	if (_load_file_dialog) {
+		_load_file_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
+		_load_file_dialog->set_file_mode(FileDialog::FileMode::FILE_MODE_OPEN_FILE);
+		_load_file_dialog->set_use_native_dialog(true);
+        _load_file_dialog->popup_centered();
+		_load_file_dialog->set_title("Select File to Load");
+
+		UtilityFunctions::print("LoadfileDialog popped up.");
+	}
 }
 
-void MainScene::_on_load_folder_selected(const String& path) {
+void MainScene::_on_load_file_selected(const String& path) {
     UtilityFunctions::print("File selected: ", path);
     if (load_input(path, pieces, board)) {
         print_board();
@@ -94,6 +113,7 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
     file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     // 3. Baca konfigurasi papan
+    board.grid.resize(board.rows + 2 * board.piece_padding, vector<char>(board.cols + 2 * board.piece_padding, ' '));
     bool is_keluar_found = false;
     bool is_primary_found = false;
     pieces.clear();
@@ -104,20 +124,18 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
             file.close();
             return false;
         }
-        if (line.length() != static_cast<size_t>(board.cols)) {
-            UtilityFunctions::printerr("Error: Baris ", i, " memiliki panjang yang salah. Diharapkan ", board.cols, ", tetapi didapatkan ", line.length(), ".");
-            file.close();
-            return false;
-        }
 
-        for (char c : line) {
-            if (c == ' ' || c == '.' || c == '\n' || c == '\r') {
+        for (int col_idx = 0; col_idx < line.length(); ++col_idx) {
+            char c = line[col_idx];
+
+            if (c == ' ' || c == '\n' || c == '\r') {
                 continue;
-            }
-
-            int x = line.find(c) + board.piece_padding;
+            } 
+            
+            int x = col_idx + board.piece_padding;
             int y = i + board.piece_padding;
-            board.is_occupied[y][x] = true;
+            board.grid[y][x] = c;
+            if (c == '.') continue;
 
             bool is_found = false;
             for (Piece& piece : pieces) {
