@@ -7,6 +7,7 @@ MainScene::~MainScene() {}
 void MainScene::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_solve_button_pressed"), &MainScene::_on_solve_button_pressed);
     ClassDB::bind_method(D_METHOD("_on_reset_button_pressed"), &MainScene::_on_reset_button_pressed);
+    ClassDB::bind_method(D_METHOD("_on_algo_button_selected"), &MainScene::_on_algo_button_selected);
     ClassDB::bind_method(D_METHOD("_on_load_button_pressed"), &MainScene::_on_load_button_pressed);
 
     ClassDB::bind_method(D_METHOD("_on_load_file_selected", "path"), &MainScene::_on_load_file_selected);
@@ -27,8 +28,11 @@ void MainScene::_notification(int p_what) {
             load_button = get_node<Button>("LoadButton");
             load_button->connect("pressed", Callable(this, "_on_load_button_pressed"));
 
-            // time = get_node<Label>("TimeLabel");
-            // time->set_text("Time: 0.0s");
+            algo_button = get_node<OptionButton>("AlgoButton");
+            algo_button->connect("item_selected", Callable(this, "_on_algo_button_selected"));
+
+            time = get_node<Label>("TimeLabel");
+            time->set_text("Time: 0.0s");
 
             break;
         }
@@ -47,6 +51,27 @@ void MainScene::_on_solve_button_pressed() {
 
 void MainScene::_on_reset_button_pressed() {
     UtilityFunctions::print("Reset button pressed!");
+}
+
+void MainScene::_on_algo_button_selected(int index) {
+    UtilityFunctions::print("Algorithm selected: ", algo_button->get_item_text(index));
+    switch (index) {
+        case BFS:
+            UtilityFunctions::print("BFS selected");
+            algo_type = BFS;
+            break;
+        case UCS:
+            UtilityFunctions::print("UCS selected");
+            algo_type = UCS;
+            break;
+        case ASTAR:
+            UtilityFunctions::print("A* selected");
+            algo_type = ASTAR;
+            break;
+        default:
+            UtilityFunctions::printerr("Unknown algorithm selected");
+            break;
+    }
 }
 
 void MainScene::_on_load_button_pressed() {
@@ -176,7 +201,6 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
 
     return true;
 }
-
 
 
 

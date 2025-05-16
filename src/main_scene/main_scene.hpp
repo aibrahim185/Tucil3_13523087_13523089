@@ -2,6 +2,7 @@
 
 #include <godot_cpp/classes/control.hpp>
 #include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
 
@@ -14,7 +15,7 @@
 using namespace godot;
 using namespace std;
 
-enum PieceType {
+enum AlgoType {
     BFS,
     UCS,
     ASTAR,
@@ -60,16 +61,18 @@ private:
 
     bool is_searching = false;
     bool is_solved = false;
-    PieceType piece_type = BFS;
+    AlgoType algo_type = BFS;
 
     Label* time;
 
     Button* solve_button;
     Button* reset_button;
     Button* load_button;
+    OptionButton* algo_button;
 
     void _on_solve_button_pressed();
     void _on_reset_button_pressed();
+    void _on_algo_button_selected(int index);
     
     FileDialog* _load_file_dialog;
     void _on_load_button_pressed();
