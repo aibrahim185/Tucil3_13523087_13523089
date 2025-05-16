@@ -1,29 +1,32 @@
-# godot-cpp template
-This repository serves as a quickstart template for GDExtension development with Godot 4.0+.
+## Prerequisites
 
-## Contents
-* An empty Godot project (`demo/`)
-* godot-cpp as a submodule (`godot-cpp/`)
-* GitHub Issues template (`.github/ISSUE_TEMPLATE.yml`)
-* GitHub CI/CD workflows to publish your library packages when creating a release (`.github/workflows/builds.yml`)
-* preconfigured source files for C++ development of the GDExtension (`src/`)
-* setup to automatically generate `.xml` files in a `doc_classes/` directory to be parsed by Godot as [GDExtension built-in documentation](https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/gdextension_docs_system.html)
+Before running the game, ensure the following tools are installed:
 
-## Usage - Template
+- **Godot**: Version 4.4. minimum
+- **Python**
+- **Scons**: by using (`pip install scons` / `sudo apt install scons`)
+- **C++ compiler**
 
-To use this template, log in to GitHub and click the green "Use this template" button at the top of the repository page.
-This will let you create a copy of this repository with a clean git history. Make sure you clone the correct branch as these are configured for development of their respective Godot development branches and differ from each other. Refer to the docs to see what changed between the versions.
+---
 
-For getting started after cloning your own copy to your local machine, you should: 
-* initialize the godot-cpp git submodule via `git submodule update --init`
-* change the name of your library
-  * change the name of the compiled library file inside the `SConstruct` file by modifying the `libname` string.
-  * change the pathnames of the to be loaded library name inside the `demo/bin/example.gdextension` file. By replacing `libgdexample` to the name specified in your `SConstruct` file.
-  * change the name of the `demo/bin/example.gdextension` file
-* change the `entry_symbol` string inside your `demo/bin/your-extension.gdextension` file to be configured for your GDExtension name. This should be the same as the `GDExtensionBool GDE_EXPORT` external C function. As the name suggests, this sets the entry function for your GDExtension to be loaded by the Godot editors C API.
-* register the classes you want Godot to interact with inside the `register_types.cpp` file in the initialization method (here `initialize_gdextension_types`) in the syntax `GDREGISTER_CLASS(CLASS-NAME);`.
+## How to Run
 
-## Usage - Actions
+Follow these steps to set up and run the game:
 
-This repository comes with a GitHub action that builds the GDExtension for cross-platform use. It triggers automatically for each pushed change. You can find and edit it in [builds.yml](.github/workflows/builds.yml).
-After a workflow run is complete, you can find the file `godot-cpp-template.zip` on the `Actions` tab on GitHub.
+### 1. Compile the file
+
+**Option 1 :**
+
+```bash
+ scons
+```
+
+or
+
+```bash
+ python -m scons
+```
+
+### 2. Import game file inside Godot
+
+Launch Godot application and then select import file menu to import `Tucil3_13523087_13523089/tukang-parkir-simulator/project.godot`
