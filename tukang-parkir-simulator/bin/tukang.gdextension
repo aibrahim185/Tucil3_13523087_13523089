@@ -1,6 +1,6 @@
 [configuration]
 
-entry_symbol = "example_library_init"
+entry_symbol = "tukang_parkir_simulator_library_init"
 compatibility_minimum = "4.1"
 
 [libraries]
@@ -15,15 +15,15 @@ ios.arm64.double.debug = "./ios/libtukang.ios.template_debug.arm64.double.dylib"
 ios.arm64.single.release = "./ios/libtukang.ios.template_release.arm64.dylib"
 ios.arm64.double.release = "./ios/libtukang.ios.template_release.arm64.double.dylib"
 
-windows.x86_32.single.debug = "./windows/tukang.windows.template_debug.x86_32.dll"
-windows.x86_32.double.debug = "./windows/tukang.windows.template_debug.x86_32.double.dll"
-windows.x86_32.single.release = "./windows/tukang.windows.template_release.x86_32.dll"
-windows.x86_32.double.release = "./windows/tukang.windows.template_release.x86_32.double.dll"
+windows.x86_32.single.debug = "./windows/libtukang.windows.template_debug.x86_32.dll"
+windows.x86_32.double.debug = "./windows/libtukang.windows.template_debug.x86_32.double.dll"
+windows.x86_32.single.release = "./windows/libtukang.windows.template_release.x86_32.dll"
+windows.x86_32.double.release = "./windows/libtukang.windows.template_release.x86_32.double.dll"
 
-windows.x86_64.single.debug = "./windows/tukang.windows.template_debug.x86_64.dll"
-windows.x86_64.double.debug = "./windows/tukang.windows.template_debug.x86_64.double.dll"
-windows.x86_64.single.release = "./windows/tukang.windows.template_release.x86_64.dll"
-windows.x86_64.double.release = "./windows/tukang.windows.template_release.x86_64.double.dll"
+windows.x86_64.single.debug = "./windows/libtukang.windows.template_debug.x86_64.dll"
+windows.x86_64.double.debug = "./windows/libtukang.windows.template_debug.x86_64.double.dll"
+windows.x86_64.single.release = "./windows/libtukang.windows.template_release.x86_64.dll"
+windows.x86_64.double.release = "./windows/libtukang.windows.template_release.x86_64.double.dll"
 
 linux.x86_64.single.debug = "./linux/libtukang.linux.template_debug.x86_64.so"
 linux.x86_64.double.debug = "./linux/libtukang.linux.template_debug.x86_64.double.so"
