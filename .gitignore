@@ -3,20 +3,20 @@
 .godot/
 
 # Ignore library files but not the gdextension file
-demo/bin/*
-!demo/bin/android
-demo/bin/android/*
-!demo/bin/android/.gitkeep
-!demo/bin/linux
-demo/bin/linux/*
-!demo/bin/linux/.gitkeep
-!demo/bin/macos
-demo/bin/macos/*
-!demo/bin/macos/.gitkeep
-!demo/bin/windows
-demo/bin/windows/*
-!demo/bin/windows/.gitkeep
-!demo/bin/*.gdextension
+tukang-parkir-simulator/bin/*
+!tukang-parkir-simulator/bin/android
+tukang-parkir-simulator/bin/android/*
+!tukang-parkir-simulator/bin/android/.gitkeep
+!tukang-parkir-simulator/bin/linux
+tukang-parkir-simulator/bin/linux/*
+!tukang-parkir-simulator/bin/linux/.gitkeep
+!tukang-parkir-simulator/bin/macos
+tukang-parkir-simulator/bin/macos/*
+!tukang-parkir-simulator/bin/macos/.gitkeep
+!tukang-parkir-simulator/bin/windows
+tukang-parkir-simulator/bin/windows/*
+!tukang-parkir-simulator/bin/windows/.gitkeep
+!tukang-parkir-simulator/bin/*.gdextension
 .sconsign*.dblite
 
 # Ignore custom.py
