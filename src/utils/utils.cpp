@@ -168,3 +168,142 @@ bool Utils::is_cell_clear(const Board& initial_board, int r, int c, const vector
     }
     return true;
 }
+
+vector<SearchNode> Utils::generate_next(const SearchNode& current_node, ValueCalculator calculate_node_value) {
+    vector<SearchNode> successors;
+    const vector<Piece>& current_pieces = current_node.pieces;
+    const Board& board_node = current_node.board;
+
+    for (size_t piece_idx = 0; piece_idx < current_pieces.size(); ++piece_idx) {
+        const Piece& piece_to_move = current_pieces[piece_idx];
+        if (piece_to_move.id == 'K') continue; // jangan gerakin exit
+        
+        // direction: -1 = kiri/atas, 1 = kanan/bawah
+        for (int direction = -1; direction <= 1; direction += 2) {
+            if (direction == 0) continue;
+            for (int steps = 1; ; ++steps) {
+                vector<Piece> next_pieces_state = current_pieces;
+                Piece& piece_moved = next_pieces_state[piece_idx];
+                bool move = true;
+
+                if (piece_to_move.is_vertical) {
+                    for (int s = 1; s <= steps; ++s) {
+                        int y;
+                        if (direction > 0) { // bergerak ke bawah
+                            y = piece_to_move.coordinates.y + piece_to_move.size - 1 + s;
+                        }
+                        else { // bergerak ke atas
+                            y = piece_to_move.coordinates.y - s;
+                        }
+                        if (!is_cell_clear(board_node, y, piece_to_move.coordinates.x, current_pieces, piece_to_move.id)) {
+                            move = false;
+                            break;
+                        }
+                    }
+                    if (move) {
+                        piece_moved.coordinates.y += (direction * steps);
+                    }
+                }
+                else { // bergerak horizontal
+                    for (int s = 1; s <= steps; ++s) {
+                        int x;
+                        if (direction > 0) { // bergerak ke kanan
+                            x = piece_to_move.coordinates.x + piece_to_move.size - 1 + s;
+                        }
+                        else { // bergerak ke kiri
+                            x = piece_to_move.coordinates.x - s;
+                        }
+                        if (!is_cell_clear(board_node, piece_to_move.coordinates.y, x, current_pieces, piece_to_move.id)) {
+                            move = false;
+                            break;
+                        }
+                    }
+                    if (move) {
+                        piece_moved.coordinates.x += (direction * steps);
+                    }
+                }
+
+                if (!move) {
+                    break;
+                }
+
+                vector<PieceMove> next_path = current_node.path;
+                PieceMove current_pm;
+                current_pm.old_coordinates = piece_to_move.coordinates;
+                current_pm.new_coordinates = piece_moved.coordinates;
+                next_path.push_back(current_pm);
+
+                int val = calculate_node_value(board_node, next_pieces_state, current_node);
+                successors.emplace_back(next_pieces_state, board_node, next_path, val, piece_to_move.id, piece_to_move.coordinates);
+            }
+        }
+    }
+    return successors;
+}
+
+Solution Utils::search(const Board& initial_board, const vector<Piece>& initial_pieces, const SearchParams& params) {
+    auto time_start = chrono::high_resolution_clock::now();
+    Solution result;
+    result.is_solved = false;
+    result.node = 0;
+
+    priority_queue<SearchNode, vector<SearchNode>, greater<SearchNode>> pq;
+    set<string> visited;
+
+    int initial_val = params.calculate_initial_val(initial_board, initial_pieces);
+    SearchNode initial_node(initial_pieces, initial_board, {}, initial_val);
+    pq.push(initial_node);
+
+    godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": Initial value: " + godot::String::num_int64(initial_val));
+
+    while (!pq.empty()) {
+        SearchNode current_node = pq.top();
+        pq.pop();
+        result.node++;
+
+        string current_state_str = state_to_string(current_node.pieces);
+        if (visited.count(current_state_str)) {
+            continue;
+        }
+        visited.insert(current_state_str);
+
+        godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": Exploring node. " + params.get_node_exploration(current_node) + ". Path length: " + godot::String::num_int64(static_cast<int64_t>(current_node.path.size())));
+        if (current_node.piece_moved != ' ') {
+            Coordinates new_pos_for_log = {-1, -1};
+            for(const auto& p_state : current_node.pieces) {
+                if (p_state.id == current_node.piece_moved) {
+                    new_pos_for_log = p_state.coordinates;
+                    break;
+                }
+            }
+            godot::UtilityFunctions::print("Moved piece: ", godot::String::utf8(&current_node.piece_moved, 1), " from (", current_node.original_position.x, ",", current_node.original_position.y, ") to (", new_pos_for_log.x, ",", new_pos_for_log.y, ")");
+        }
+
+        if (is_exit(current_node.board, current_node.pieces)) {
+            result.is_solved = true;
+            result.moves = current_node.path;
+            godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": Solution Found! " + params.get_solution_details(current_node, result) + ". Nodes visited: " + godot::String::num_int64(static_cast<int64_t>(result.node)));
+            break;
+        }
+
+        vector<SearchNode> successors = generate_next(
+            current_node,
+            params.successor_val
+        );
+
+        for (const auto& successor_node : successors) {
+            string next_state_str = state_to_string(successor_node.pieces);
+            if (!visited.count(next_state_str)) {
+                pq.push(successor_node);
+            }
+        }
+    }
+
+    auto time_end = chrono::high_resolution_clock::now();
+    result.duration = chrono::duration<double, milli>(time_end - time_start);
+
+    if (!result.is_solved) {
+        godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": No solution found. Nodes visited: " + godot::String::num_int64(static_cast<int64_t>(result.node)));
+    }
+    return result;
+}
