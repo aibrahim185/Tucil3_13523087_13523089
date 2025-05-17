@@ -20,10 +20,11 @@ glow_enabled = true
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jyhfs"]
 render_priority = 0
 shader = ExtResource("1_sugp2")
+shader_parameter/base_color = Color(0.8, 0.8, 0.8, 1)
+shader_parameter/line_color = Color(0, 0, 0, 1)
 shader_parameter/grid_spacing = 1.0
 shader_parameter/line_thickness = 0.1
-shader_parameter/line_color = Color(0, 0, 0, 1)
-shader_parameter/base_color = Color(0.8, 0.8, 0.8, 1)
+shader_parameter/mesh_actual_size = Vector2(6, 6)
 shader_parameter/grid_plane = 1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wfyh"]
@@ -50,15 +51,14 @@ sky_mode = 1
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 
 [node name="Floor" type="MeshInstance3D" parent="StaticBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 material_override = SubResource("ShaderMaterial_jyhfs")
 mesh = SubResource("PlaneMesh_0wfyh")
 
 [node name="Car2" parent="StaticBody3D/Floor" instance=ExtResource("1_0wfyh")]
-transform = Transform3D(1, 0, 1.06581e-14, 0, 1, 0, -1.06581e-14, 0, 1, -2.5, 0.5, -2)
+transform = Transform3D(1, 0, 1.06581e-14, 0, 1, 0, -1.06581e-14, 0, 1, -1.5, 0.5, -1)
 
 [node name="Car3" parent="StaticBody3D/Floor" instance=ExtResource("2_sugp2")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -1.5, 0.5, 0.5)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.5, 0.5, 0.5)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)

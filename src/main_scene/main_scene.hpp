@@ -7,8 +7,15 @@
 #include <godot_cpp/classes/file_dialog.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/classes/shader_material.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
+#include <godot_cpp/classes/rigid_body3d.hpp>
+#include <godot_cpp/classes/csg_primitive3d.hpp>
+#include <godot_cpp/classes/plane_mesh.hpp>
+#include <godot_cpp/classes/collision_shape3d.hpp>
+#include <godot_cpp/classes/concave_polygon_shape3d.hpp>
+#include <godot_cpp/classes/engine.hpp>
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -43,8 +50,9 @@ private:
     Ref<PackedScene> car3_template;
     Ref<StandardMaterial3D> primary_piece_material;
     Ref<StandardMaterial3D> non_primary_piece_material;
-    Node* cars_container = nullptr;
+    MeshInstance3D* floor = nullptr;
     std::vector<Node3D*> spawned_car_nodes;
+    Vector3 floor_center_offset = Vector3(0.0f, 0.0f, 0.0f);
 
     void _on_solve_button_pressed();
     void _on_reset_button_pressed();

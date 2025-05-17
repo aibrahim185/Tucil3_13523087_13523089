@@ -1,12 +1,5 @@
 #include "main_scene.hpp"
 
-#include <godot_cpp/classes/rigid_body3d.hpp>
-#include <godot_cpp/classes/mesh_instance3d.hpp>
-#include <godot_cpp/classes/csg_primitive3d.hpp>
-#include <godot_cpp/classes/plane_mesh.hpp>
-#include <godot_cpp/classes/collision_shape3d.hpp>
-#include <godot_cpp/classes/concave_polygon_shape3d.hpp>
-#include <godot_cpp/classes/engine.hpp>
 #include "../search/bfs/bfs.hpp"
 
 MainScene::MainScene() {}
@@ -46,10 +39,7 @@ void MainScene::_notification(int p_what) {
             time_label = get_node<Label>("UI/TimeLabel");
             if (time_label) time_label->set_text("Time: 0.0s");
 
-            cars_container = get_node<Node>("StaticBody3D/Floor");
-            if (!cars_container) {
-                UtilityFunctions::printerr("ERROR: Node 'StaticBody3D/Floor' tidak ditemukan. Mobil tidak akan di-spawn.");
-            }
+            floor = get_node<MeshInstance3D>("StaticBody3D/Floor");
 
             RigidBody3D* car2 = get_node<RigidBody3D>("StaticBody3D/Floor/Car2");
             if (car2) car2->queue_free();
@@ -197,75 +187,157 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
     }
     file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    // 3. Baca konfigurasi papan
-    board.grid.resize(board.rows + 2 * board.piece_padding, vector<char>(board.cols + 2 * board.piece_padding, ' '));
-    bool is_keluar_found = false;
-    bool is_primary_found = false;
-    pieces.clear();
-    std::string line;
-    for (int i = 0; i < board.rows; i++) {
-        if (!std::getline(file, line)) {
-            UtilityFunctions::printerr("Error: Gagal membaca baris ", i, " dari file.");
-            file.close();
-            return false;
+    std::vector<std::string> potential_lines;
+    std::string s_line;
+    for (int i = 0; i < board.rows + 2; ++i) {
+        if (std::getline(file, s_line)) {
+            potential_lines.push_back(s_line);
+        } else {
+            break;
         }
+    }
+    file.close();
+    
+    // 3. Baca konfigurasi papan
+    pieces.clear();
+    int padded_height = board.rows + 2 * board.piece_padding;
+    int padded_width = board.cols + 2 * board.piece_padding;
+    board.grid.assign(padded_height, std::vector<char>(padded_width, ' '));
 
-        for (int col_idx = 0; col_idx < line.length(); ++col_idx) {
-            char c = line[col_idx];
+    bool local_is_keluar_found = false;
+    bool local_is_primary_found = false;
+    bool k_found_on_pre_grid_line = false;
 
-            if (c == ' ' || c == '\n' || c == '\r') {
-                continue;
-            } 
-            
-            int x = col_idx + board.piece_padding;
-            int y = i + board.piece_padding;
-            board.grid[y][x] = c;
-            if (c == '.') continue;
-
-            bool is_found = false;
-            for (Piece& piece : pieces) {
-                if (piece.id == c) {
-                    piece.size++;
-                    if (piece.coordinates.x == x) 
-                        piece.is_vertical = true;
-                    is_found = true;
-                    break;
+    // 4. Pass 1: Cari 'K'
+    if (!potential_lines.empty()) {
+        const std::string& first_line_in_buffer = potential_lines[0];
+        for (int col = 0; col < first_line_in_buffer.length(); ++col) {
+            if (first_line_in_buffer[col] == 'K') {
+                board.exit_coordinates.x = col + board.piece_padding;
+                board.exit_coordinates.y = -1 + board.piece_padding;
+                local_is_keluar_found = true;
+                k_found_on_pre_grid_line = true;
+                if (board.exit_coordinates.y >= 0 && board.exit_coordinates.y < padded_height &&
+                    board.exit_coordinates.x >= 0 && board.exit_coordinates.x < padded_width) {
+                    board.grid[board.exit_coordinates.y][board.exit_coordinates.x] = 'K';
                 }
-            }
-
-            if (!is_found) {
-                Piece piece;
-                piece.id = c;
-                piece.size = 1;
-                piece.is_vertical = false;
-                piece.is_primary = false;
-                piece.coordinates.x = x;
-                piece.coordinates.y = y;
-
-                if (c == 'K') {
-                    is_keluar_found = true;
-                    board.exit_coordinates.x = x;
-                    board.exit_coordinates.y = y;
-                    continue;
-                } else if (c == 'P') {
-                    is_primary_found = true;
-                    piece.is_primary = true;
-                }
-
-                pieces.push_back(piece);
+                break;
             }
         }
     }
 
-    file.close();
+    int grid_lines_start_idx_in_buffer = k_found_on_pre_grid_line ? 1 : 0;
+    int actual_grid_lines_processed = 0;
+
+    // 5. Pass 2: Proses Piece dari baris grid utama (dan cari K jika belum ketemu)
+    for (int i = 0; i < board.rows; ++i) {
+        int current_line_idx_in_buffer = grid_lines_start_idx_in_buffer + i;
+
+        if (current_line_idx_in_buffer >= potential_lines.size()) {
+            break;
+        }
+        actual_grid_lines_processed++;
+        const std::string& current_grid_line_content = potential_lines[current_line_idx_in_buffer];
+
+        for (int col = 0; col < current_grid_line_content.length(); ++col) {
+            char c = current_grid_line_content[col];
+            if (c == ' ' || c == '\n' || c == '\r') {
+                continue;
+            }
+
+            int char_padded_x = col + board.piece_padding;
+            int char_padded_y = i + board.piece_padding;
+
+            if (char_padded_y >= 0 && char_padded_y < padded_height &&
+                char_padded_x >= 0 && char_padded_x < padded_width) {
+                board.grid[char_padded_y][char_padded_x] = c;
+            }
+
+            if (c == 'K') {
+                if (!local_is_keluar_found) {
+                    board.exit_coordinates.x = char_padded_x;
+                    board.exit_coordinates.y = char_padded_y;
+                    local_is_keluar_found = true;
+                }
+                continue;
+            }
+
+            if (c == '.') {
+                continue;
+            }
+
+            if (col < board.cols) {
+                bool piece_found = false;
+                for (Piece& piece : pieces) {
+                    if (piece.id == c) {
+                        piece.size++;
+                        if (piece.coordinates.x == char_padded_x) {
+                            piece.is_vertical = true;
+                        } else if (piece.coordinates.y == char_padded_y) {
+                            piece.is_vertical = false;
+                        }
+                        piece_found = true;
+                        break;
+                    }
+                }
+
+                if (!piece_found) {
+                    Piece new_piece;
+                    new_piece.id = c;
+                    new_piece.size = 1;
+                    new_piece.is_vertical = false;
+                    new_piece.is_primary = (c == 'P');
+                    new_piece.coordinates.x = char_padded_x;
+                    new_piece.coordinates.y = char_padded_y;
+
+                    if (c == 'P') {
+                        local_is_primary_found = true;
+                    }
+                    pieces.push_back(new_piece);
+                }
+            }
+        }
+    }
+
+    // 6. Pass 3: Proses Piece dari baris pasca-grid (dan cari K jika belum ketemu)
+    int line_after_grid_idx_in_buffer = grid_lines_start_idx_in_buffer + actual_grid_lines_processed;
+    if (!local_is_keluar_found && line_after_grid_idx_in_buffer < potential_lines.size()) {
+        const std::string& after_grid_line_content = potential_lines[line_after_grid_idx_in_buffer];
+        for (int col = 0; col < after_grid_line_content.length(); ++col) {
+            if (after_grid_line_content[col] == 'K') {
+                board.exit_coordinates.x = col + board.piece_padding;
+                board.exit_coordinates.y = board.rows + board.piece_padding;
+                local_is_keluar_found = true;
+                if (board.exit_coordinates.y >= 0 && board.exit_coordinates.y < padded_height &&
+                    board.exit_coordinates.x >= 0 && board.exit_coordinates.x < padded_width) {
+                    board.grid[board.exit_coordinates.y][board.exit_coordinates.x] = 'K';
+                }
+                break;
+            }
+        }
+    }
+
+    if (pieces.size() != board.other_pieces_count + 1) {
+        UtilityFunctions::printerr("Error: Pieces count mismatch. Expected: ", board.other_pieces_count + 1, ", Found: ", pieces.size());
+        return false;
+    }
+
+    if (!local_is_keluar_found) {
+        UtilityFunctions::printerr("Error: K not found in the grid.");
+        return false;
+    }
+
+    Ref<ShaderMaterial> shader_material_ref = floor->get_material_override();
+    if (shader_material_ref.is_valid()) {
+        shader_material_ref->set_shader_parameter("mesh_actual_size", Vector2(static_cast<float>(board.cols), static_cast<float>(board.rows)));
+    }
 
     if (board.rows > 0 && board.cols > 0) {
-        MeshInstance3D* floor_node = get_node<MeshInstance3D>("StaticBody3D/Floor");
         CollisionShape3D* collision_shape_node = get_node<CollisionShape3D>("StaticBody3D/CollisionShape3D");
 
-        if (floor_node && collision_shape_node) {
+        if (floor && collision_shape_node) {
             // 1. Atur ukuran visual PlaneMesh
-            Ref<PlaneMesh> plane_mesh = floor_node->get_mesh();
+            Ref<PlaneMesh> plane_mesh = floor->get_mesh();
             if (plane_mesh.is_valid()) {
                 plane_mesh->set_size(Vector2(static_cast<float>(board.cols), static_cast<float>(board.rows)));
                 UtilityFunctions::print("Floor mesh size set to: ", Vector2(static_cast<float>(board.cols), static_cast<float>(board.rows)));
@@ -294,7 +366,7 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
                 UtilityFunctions::printerr("Failed to get ConcavePolygonShape3D for Floor collision.");
             }
         } else {
-            if (!floor_node) UtilityFunctions::printerr("Failed to find Floor node at StaticBody3D/Floor.");
+            if (!floor) UtilityFunctions::printerr("Failed to find Floor node at StaticBody3D/Floor.");
             if (!collision_shape_node) UtilityFunctions::printerr("Failed to find CollisionShape3D node at StaticBody3D/CollisionShape3D.");
         }
     } else {
@@ -314,8 +386,8 @@ void MainScene::_clear_all_cars() {
 }
 
 void MainScene::_spawn_piece_as_car(const Piece& piece_data) {
-    if (!cars_container) {
-        UtilityFunctions::printerr("cars_container tidak valid, tidak bisa spawn mobil.");
+    if (!floor) {
+        UtilityFunctions::printerr("cars_container is null. Cannot spawn car.");
         return;
     }
 
@@ -340,7 +412,7 @@ void MainScene::_spawn_piece_as_car(const Piece& piece_data) {
         return;
     }
 
-    cars_container->add_child(car_node_3d);
+    floor->add_child(car_node_3d);
     spawned_car_nodes.push_back(car_node_3d);
 
     int actual_col = piece_data.coordinates.x - board.piece_padding;
