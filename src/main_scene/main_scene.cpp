@@ -28,10 +28,16 @@ void MainScene::_notification(int p_what) {
             }
 
             solve_button = get_node<Button>("UI/SolveButton");
-            if (solve_button) solve_button->connect("pressed", Callable(this, "_on_solve_button_pressed"));
+            if (solve_button){
+                solve_button->connect("pressed", Callable(this, "_on_solve_button_pressed"));
+                solve_button->set_disabled(true);
+            } 
 
             reset_button = get_node<Button>("UI/ResetButton");
-            if (reset_button) reset_button->connect("pressed", Callable(this, "_on_reset_button_pressed"));
+            if (reset_button) {
+                reset_button->connect("pressed", Callable(this, "_on_reset_button_pressed"));
+                reset_button->set_disabled(true);
+            } 
 
             load_button = get_node<Button>("UI/LoadButton");
             if (load_button) load_button->connect("pressed", Callable(this, "_on_load_button_pressed"));
@@ -262,6 +268,15 @@ Vector3 MainScene::_get_3d_position_for_piece_coords(const Coordinates& piece_to
 
 void MainScene::_on_reset_button_pressed() {
     UtilityFunctions::print("Reset button pressed!");
+    _clear_all_cars();
+    time_label->set_text("Time: 0.0s");
+    current_solution.moves.clear();
+    current_move_index = -1;
+    is_animating_solution = false;
+    is_searching = false;
+    is_solved = false;
+    if(solve_button) solve_button->set_disabled(true);
+    if(reset_button) reset_button->set_disabled(true);
 }
 
 void MainScene::_on_algo_button_selected(int index) {
@@ -315,6 +330,9 @@ void MainScene::_on_load_file_selected(const String& path) {
     if (load_input(path, pieces, board)) {
         Utils::print_board(board, pieces);
 
+        solve_button->set_disabled(false);
+        reset_button->set_disabled(false);
+        
         _clear_all_cars();
         for (const auto& piece_data : this->pieces) {
             _spawn_piece_as_car(piece_data);
