@@ -7,6 +7,9 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <queue>
+#include <set>
+#include <functional>
 
 using namespace std;
 using namespace godot;
@@ -71,15 +74,15 @@ struct Solution {
 };
 
 struct SearchNode {
-    std::vector<Piece> pieces;
+    vector<Piece> pieces;
     Board board;
-    std::vector<PieceMove> path;
-    int val; // nilai heuristik dari state ini
+    vector<PieceMove> path;
+    int val;
     
     char piece_moved; 
-    Coordinates original_pos_moved_piece;
+    Coordinates original_position;
 
-    SearchNode(const std::vector<Piece>& p, const Board& b, const std::vector<PieceMove>& path, int h, char pid = ' ', Coordinates opos = {-1,-1}) : pieces(p), board(b), path(path), val(h), piece_moved(pid), original_pos_moved_piece(opos) {}
+    SearchNode(const vector<Piece>& p, const Board& b, const vector<PieceMove>& path, int v, char pid = ' ', Coordinates opos = {-1,-1}) : pieces(p), board(b), path(path), val(v), piece_moved(pid), original_position(opos) {}
 
     bool operator>(const SearchNode& other) const {
         return val > other.val;
@@ -88,15 +91,27 @@ struct SearchNode {
 
 class Utils {
 public:
-    static void print_board(Board& board, std:: vector<Piece>& pieces);
-    static godot::String stringToGodotString(const std::string& stdString);
-    static std::string godotStringToString(const godot::String& godotString);
+    static void print_board(Board& board,  vector<Piece>& pieces);
+    static godot::String stringToGodotString(const string& stdString);
+    static string godotStringToString(const godot::String& godotString);
     
     static int calculate(const Board& initial_board, const vector<Piece>& current_pieces);
-    static bool is_exit(const Board& initial_board, const std::vector<Piece>& current_pieces);
+    static bool is_exit(const Board& initial_board, const vector<Piece>& current_pieces);
     
     // helper function
     static const Piece* get_primary_piece(const vector<Piece>& pieces_list);
-    static std::string state_to_string(const std::vector<Piece>& current_pieces);
-    static bool is_cell_clear(const Board& initial_board, int r_check, int c_check, const std::vector<Piece>& pieces_in_state, char moving_piece_id);
+    static string state_to_string(const vector<Piece>& current_pieces);
+    static bool is_cell_clear(const Board& initial_board, int r_check, int c_check, const vector<Piece>& pieces_in_state, char moving_piece_id);
+    using ValueCalculator = function<int(const Board& board_state, const vector<Piece>& next_pieces_state, const SearchNode& parent_node)>;
+    static vector<SearchNode> generate_next(const SearchNode& current_node, ValueCalculator calculate_node_value);
+
+    struct SearchParams {
+        string algorithm_name;
+        function<int(const Board&, const vector<Piece>&)> calculate_initial_val;
+        ValueCalculator successor_val;
+        function<godot::String(const SearchNode&)> get_node_exploration;
+        function<godot::String(const SearchNode&, const Solution&)> get_solution_details;
+    };
+
+    static Solution search(const Board& initial_board, const vector<Piece>& initial_pieces, const SearchParams& params);
 };
