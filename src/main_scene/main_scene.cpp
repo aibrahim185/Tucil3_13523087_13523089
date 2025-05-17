@@ -1,4 +1,6 @@
 #include "main_scene.hpp"
+#include "../search/search.hpp"
+#include "../search/bfs/bfs.hpp"
 
 MainScene::MainScene() {}
 
@@ -47,6 +49,20 @@ void MainScene::_process(double delta) {
 
 void MainScene::_on_solve_button_pressed() {
     UtilityFunctions::print("Solve button pressed!");
+    // if (true) {
+    //     bfs bfs_solver(board, pieces);
+    //     Solution solution = bfs_solver.search();
+
+    //     if (solution.is_solved) {
+    //         UtilityFunctions::print("GBFS found a solution!");
+    //         UtilityFunctions::print("Moves: ", solution.moves.size());
+    //     } 
+    //     else {
+    //         UtilityFunctions::print("GBFS could not find a solution.");
+    //     }
+    //     UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
+    //     UtilityFunctions::print("Nodes visited: ", solution.node);
+    // }
 }
 
 void MainScene::_on_reset_button_pressed() {
