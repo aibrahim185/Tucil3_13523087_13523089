@@ -13,9 +13,6 @@
 class bfs {
 public:
     static Solution search_bfs(const Board& initial_board, const std::vector<Piece>& initial_pieces);
-
-private:
-    static std::vector<SearchNode> generate_next_bfs(const Board& initial_board, const SearchNode& current_node);
 };
 
 #endif
