@@ -1,5 +1,5 @@
 #include "main_scene.hpp"
-#include "../search/search.hpp"
+
 #include "../search/bfs/bfs.hpp"
 
 MainScene::MainScene() {}
@@ -49,20 +49,33 @@ void MainScene::_process(double delta) {
 
 void MainScene::_on_solve_button_pressed() {
     UtilityFunctions::print("Solve button pressed!");
-    // if (true) {
-    //     bfs bfs_solver(board, pieces);
-    //     Solution solution = bfs_solver.search();
 
-    //     if (solution.is_solved) {
-    //         UtilityFunctions::print("GBFS found a solution!");
-    //         UtilityFunctions::print("Moves: ", solution.moves.size());
-    //     } 
-    //     else {
-    //         UtilityFunctions::print("GBFS could not find a solution.");
-    //     }
-    //     UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
-    //     UtilityFunctions::print("Nodes visited: ", solution.node);
-    // }
+    switch (algo_type) {
+        case BFS: {
+            Solution solution = bfs::search_bfs(board, pieces);
+            is_searching = true;
+
+            if (is_solved = solution.is_solved) {
+                UtilityFunctions::print("BFS found a solution!");
+                UtilityFunctions::print("Moves: ", solution.moves.size());
+            } else {
+                UtilityFunctions::print("BFS could not find a solution.");
+            }
+            UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
+            UtilityFunctions::print("Nodes visited: ", solution.node);
+            is_searching = false;
+            break;
+        }
+        case UCS:
+            UtilityFunctions::print("UCS selected");
+            break;
+        case ASTAR:
+            UtilityFunctions::print("A* selected");
+            break;
+        default:
+            UtilityFunctions::printerr("Unknown algorithm selected");
+            break;
+    }
 }
 
 void MainScene::_on_reset_button_pressed() {
@@ -118,7 +131,7 @@ void MainScene::_on_load_button_pressed() {
 void MainScene::_on_load_file_selected(const String& path) {
     UtilityFunctions::print("File selected: ", path);
     if (load_input(path, pieces, board)) {
-        print_board();
+        Utils::print_board(board, pieces);
     } else {
         UtilityFunctions::printerr("Failed to load input file.");
     }
@@ -131,7 +144,7 @@ void MainScene::_on_load_dialog_canceled() {
 bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
     UtilityFunctions::print("Loading input from file: ", path);
 
-    std::ifstream file(godotStringToString(path));
+    std::ifstream file(Utils::godotStringToString(path));
     if (!file.is_open()) {
         UtilityFunctions::printerr("Error: Tidak dapat membuka file: ", path);
         return false;
@@ -216,45 +229,4 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
     file.close();
 
     return true;
-}
-
-
-
-// --- Utils ---
-void MainScene::print_board() {
-    UtilityFunctions::print("Board:");
-    vector<vector<char>> board_representation(board.rows + 2 * board.piece_padding, vector<char>(board.cols + 2 * board.piece_padding, ' '));
-    board_representation[board.exit_coordinates.y][board.exit_coordinates.x] = 'K';
-    for (Piece& piece : pieces) {
-        for (int i = 0; i < piece.size; i++) {
-            int x = piece.coordinates.x;
-            int y = piece.coordinates.y;
-            for (int j = 0; j < piece.size; j++) {
-                if (piece.is_vertical) {
-                    board_representation[y + j][x] = piece.id;
-                } else {
-                    board_representation[y][x + j] = piece.id;
-                }
-            }
-        }
-    }
-    for (int i = 0; i < board_representation.size(); i++) {
-        string line = "";
-        for (int j = 0; j < board_representation[i].size(); j++) {
-            if (board_representation[i][j] == ' ' && i >= board.piece_padding && i < board_representation.size() - board.piece_padding && j >= board.piece_padding && j < board_representation[i].size() - board.piece_padding) {
-                line += '.';
-            } else {
-                line += board_representation[i][j];
-            }
-        }
-        UtilityFunctions::print(stringToGodotString(line));
-    }
-}
-
-godot::String MainScene::stringToGodotString(const std::string& stdString) {
-    return godot::String(stdString.c_str());
-}
-
-std::string MainScene::godotStringToString(const godot::String& godotString) {
-    return std::string(godotString.utf8().get_data());
 }

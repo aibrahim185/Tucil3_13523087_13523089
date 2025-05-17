@@ -3,139 +3,7 @@
 #include <iostream>
 using namespace std;
 
-bfs::bfs(const Board& initial_board, const vector<Piece>& initial_pieces) : initial_board_config(initial_board), initial_pieces_config(initial_pieces) {}
-bfs::~bfs() {}
-
-const Piece* bfs::get_primary_piece(const vector<Piece>& pieces_list) const {
-    for (const auto& p : pieces_list) {
-        if (p.is_primary) {
-            return &p;
-        }
-    }
-    return nullptr;
-}
-
-int bfs::calculate(const vector<Piece>& current_pieces) {
-    const Piece* primary_piece = get_primary_piece(current_pieces);
-
-    if (!primary_piece) {
-        godot::UtilityFunctions::printerr("GBFS Error: Primary piece not found in heuristic calculation.");
-        return -1; // kalau ga ada primary piece
-    }
-
-    int distance = 0;
-    if (!primary_piece->is_vertical) { // bidak horizontal
-        // jika pintu keluar ada di kanan bidak utama
-        if (initial_board_config.exit_coordinates.x > primary_piece->coordinates.x) {
-            distance = initial_board_config.exit_coordinates.x - (primary_piece->coordinates.x + primary_piece->size - 1);
-        }
-        else { // jika pintu keluar ada di kiri bidak utama
-            distance = primary_piece->coordinates.x - initial_board_config.exit_coordinates.x;
-        }
-    }
-    else { // bidak vertikal
-        // jika pintu keluar ada di bawah bidak utama
-        if (initial_board_config.exit_coordinates.y > primary_piece->coordinates.y) {
-            distance = initial_board_config.exit_coordinates.y - (primary_piece->coordinates.y + primary_piece->size - 1);
-        } 
-        else { // jika pintu keluar ada di atas bidak utama
-            distance = primary_piece->coordinates.y - initial_board_config.exit_coordinates.y;
-        }
-    }
-    return abs(distance);
-}
-
-bool bfs::is_exit(const vector<Piece>& current_pieces) {
-    const Piece* primary_piece = get_primary_piece(current_pieces);
-    if (!primary_piece) {
-        godot::UtilityFunctions::printerr("GBFS Error: Primary piece not found in goal state check.");
-        return false;
-    }
-
-    if (!primary_piece->is_vertical) { // horizontal
-        if (primary_piece->coordinates.y != initial_board_config.exit_coordinates.y) return false;
-        
-        // jika pintu keluar di kanan
-        if (initial_board_config.exit_coordinates.x >= (primary_piece->coordinates.x + primary_piece->size -1) ) {
-             return (primary_piece->coordinates.x + primary_piece->size - 1) == initial_board_config.exit_coordinates.x;
-        } 
-        else { // pintu keluar di kiri
-             return primary_piece->coordinates.x == initial_board_config.exit_coordinates.x;
-        }
-    }
-    else { // vertikal
-        if (primary_piece->coordinates.x != initial_board_config.exit_coordinates.x) return false;
-
-        // jika pintu keluar di bawah
-        if (initial_board_config.exit_coordinates.y >= (primary_piece->coordinates.y + primary_piece->size -1)) {
-            return (primary_piece->coordinates.y + primary_piece->size - 1) == initial_board_config.exit_coordinates.y;
-        }
-        else { // pintu keluar di atas
-            return primary_piece->coordinates.y == initial_board_config.exit_coordinates.y;
-        }
-    }
-    return false;
-}
-
-string bfs::state_to_string(const vector<Piece>& current_pieces) {
-    string s = "";
-    vector<Piece> sorted_pieces = current_pieces;
-
-    // urutin berdasarkan id
-    sort(sorted_pieces.begin(), sorted_pieces.end(), [](const Piece& a, const Piece& b) {
-        return a.id < b.id;
-    });
-
-    // buat string gabungan per piece yang berisi info penting terkait koordinat dan arah
-    for (const auto& piece : sorted_pieces) {
-        if (piece.id == 'K') continue;
-        s += piece.id;
-        s += ':';
-        s += to_string(piece.coordinates.x);
-        s += ',';
-        s += to_string(piece.coordinates.y);
-        s += (piece.is_vertical ? "V" : "H");
-        s += ";";
-    }
-    return s;
-}
-
-bool bfs::is_cell_clear(int r, int c, const vector<Piece>& pieces_state, char moving_piece_id) const {
-    if (r < initial_board_config.piece_padding || r >= initial_board_config.rows + initial_board_config.piece_padding || c < initial_board_config.piece_padding || c >= initial_board_config.cols + initial_board_config.piece_padding) {
-        const Piece* p_moving = nullptr;
-        for(const auto& p_iter : pieces_state) {
-            if(p_iter.id == moving_piece_id) {
-                p_moving = &p_iter;
-                break;
-            }
-        }
-        if (p_moving && p_moving->is_primary && 
-            r == initial_board_config.exit_coordinates.y && 
-            c == initial_board_config.exit_coordinates.x) {
-            return true;
-        }
-        return false;
-    }
-
-    for (const auto& piece : pieces_state) {
-        if (piece.id == moving_piece_id || piece.id == 'K') { // jangan cek exit
-            continue;
-        }
-        if (piece.is_vertical) {
-            if (c == piece.coordinates.x && r >= piece.coordinates.y && r < piece.coordinates.y + piece.size) {
-                return false;
-            }
-        } 
-        else {
-            if (r == piece.coordinates.y && c >= piece.coordinates.x && c < piece.coordinates.x + piece.size) {
-                return false; // ditempati piece lain
-            }
-        }
-    }
-    return true;
-}
-
-vector<bfs::SearchNode> bfs::generate_next(const bfs::SearchNode& current_node) {
+vector<SearchNode> bfs::generate_next_bfs(const Board& initial_board, const SearchNode& current_node) {
     vector<SearchNode> successors;
     const vector<Piece>& current_pieces = current_node.pieces;
 
@@ -162,7 +30,7 @@ vector<bfs::SearchNode> bfs::generate_next(const bfs::SearchNode& current_node) 
                         else { // bergerak ke atas
                             y = piece_to_move.coordinates.y - s;
                         }
-                        if (!is_cell_clear(y, piece_to_move.coordinates.x, current_pieces, piece_to_move.id)) {
+                        if (!Utils::is_cell_clear(initial_board, y, piece_to_move.coordinates.x, current_pieces, piece_to_move.id)) {
                             move = false;
                             break;
                         }
@@ -180,7 +48,7 @@ vector<bfs::SearchNode> bfs::generate_next(const bfs::SearchNode& current_node) 
                         else { // bergerak ke kiri
                             x = piece_to_move.coordinates.x - s;
                         }
-                        if (!is_cell_clear(piece_to_move.coordinates.y, x, current_pieces, piece_to_move.id)) {
+                        if (!Utils::is_cell_clear(initial_board, piece_to_move.coordinates.y, x, current_pieces, piece_to_move.id)) {
                             move = false;
                             break;
                         }
@@ -200,16 +68,16 @@ vector<bfs::SearchNode> bfs::generate_next(const bfs::SearchNode& current_node) 
                 current_pm.new_coordinates = piece_moved.coordinates;
                 next_path.push_back(current_pm);
 
-                int val = calculate(next_pieces_state);
+                int val = Utils::calculate(initial_board, next_pieces_state);
 
-                successors.emplace_back(next_pieces_state, initial_board_config, next_path, val, piece_to_move.id, piece_to_move.coordinates);
+                successors.emplace_back(next_pieces_state, initial_board, next_path, val, piece_to_move.id, piece_to_move.coordinates);
             }
         }
     }
     return successors;
 }
 
-Solution bfs::search() {
+Solution bfs::search_bfs(const Board& initial_board, const std::vector<Piece>& initial_pieces) {
     auto time_start = chrono::high_resolution_clock::now();
 
     // inisialisasi
@@ -219,8 +87,8 @@ Solution bfs::search() {
 
     priority_queue<SearchNode, vector<SearchNode>, greater<SearchNode>> pq;
     set<string> visited;
-    int initial_h = calculate(initial_pieces_config);
-    SearchNode initial_node(initial_pieces_config, initial_board_config, {}, initial_h);
+    int initial_h = Utils::calculate(initial_board, initial_pieces);
+    SearchNode initial_node(initial_pieces, initial_board, {}, initial_h);
     pq.push(initial_node);
     
     godot::UtilityFunctions::print("GBFS: Initial heuristic: ", initial_h);
@@ -231,7 +99,7 @@ Solution bfs::search() {
 
         result.node++;
 
-        string current_state_str = state_to_string(current_node.pieces);
+        string current_state_str = Utils::state_to_string(current_node.pieces);
         if (visited.count(current_state_str)) {
             continue;
         }
@@ -243,16 +111,16 @@ Solution bfs::search() {
         }
 
 
-        if (is_exit(current_node.pieces)) {
+        if (Utils::is_exit(initial_board, current_node.pieces)) {
             result.is_solved = true;
             result.moves = current_node.path;
             godot::UtilityFunctions::print("GBFS: Solution Found! Moves: ", result.moves.size(), " Nodes visited: ", result.node);
             break;
         }
 
-        vector<SearchNode> next = generate_next(current_node);
+        vector<SearchNode> next = generate_next_bfs(initial_board, current_node);
         for (const auto& next_node : next) {
-            string next_state_str = state_to_string(next_node.pieces);
+            string next_state_str = Utils::state_to_string(next_node.pieces);
             if (!visited.count(next_state_str)) {
                 pq.push(next_node);
             }

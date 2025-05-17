@@ -9,47 +9,12 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include <fstream>
-
 #include <vector>
+
+#include "../utils/utils.hpp"
 
 using namespace godot;
 using namespace std;
-
-enum AlgoType {
-    BFS,
-    UCS,
-    ASTAR,
-};
-
-struct Coordinates {
-    int x;
-    int y;
-};
-
-struct Piece {
-    char id;
-    Coordinates coordinates;
-    int size;
-    bool is_vertical;
-    bool is_primary;
-};
-
-struct Board {
-    int rows;
-    int cols;
-    int other_pieces_count;
-    int pixel_size;
-    int pixel_padding;
-    Coordinates exit_coordinates;
-    
-    vector<vector<char>> grid;
-    int piece_padding = 1;
-};
-
-struct PieceMove {
-    Coordinates old_coordinates;
-    Coordinates new_coordinates;
-};
 
 class MainScene : public Control {
     GDCLASS(MainScene, Control)
@@ -63,18 +28,18 @@ private:
     bool is_solved = false;
     AlgoType algo_type = BFS;
 
-    Label* time;
+    Label* time = nullptr;
 
-    Button* solve_button;
-    Button* reset_button;
-    Button* load_button;
-    OptionButton* algo_button;
+    Button* solve_button = nullptr;
+    Button* reset_button = nullptr;
+    Button* load_button = nullptr;
+    OptionButton* algo_button = nullptr;
 
     void _on_solve_button_pressed();
     void _on_reset_button_pressed();
     void _on_algo_button_selected(int index);
     
-    FileDialog* _load_file_dialog;
+    FileDialog* _load_file_dialog = nullptr;
     void _on_load_button_pressed();
     void _on_load_file_selected(const String& path);
     void _on_load_dialog_canceled();
@@ -90,10 +55,4 @@ public:
     ~MainScene();
 
     void _process(double delta) override;
-
-// --- Utils ---
-private:
-    void print_board();
-    godot::String stringToGodotString(const std::string& stdString);
-    std::string godotStringToString(const godot::String& godotString);
 };
