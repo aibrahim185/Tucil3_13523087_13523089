@@ -1,6 +1,7 @@
 #include "main_scene.hpp"
 
 #include "../search/bfs/bfs.hpp"
+#include "../search/ucs/ucs.hpp"
 
 MainScene::MainScene() {}
 
@@ -50,9 +51,11 @@ void MainScene::_process(double delta) {
 void MainScene::_on_solve_button_pressed() {
     UtilityFunctions::print("Solve button pressed!");
 
+    Solution solution;
+
     switch (algo_type) {
         case BFS: {
-            Solution solution = bfs::search_bfs(board, pieces);
+            solution = bfs::search_bfs(board, pieces);
             is_searching = true;
 
             if (is_solved = solution.is_solved) {
@@ -66,9 +69,21 @@ void MainScene::_on_solve_button_pressed() {
             is_searching = false;
             break;
         }
-        case UCS:
-            UtilityFunctions::print("UCS selected");
+        case UCS: {
+            solution = ucs::search_ucs(board, pieces);
+            is_searching = true;
+
+            if (is_solved = solution.is_solved) {
+                UtilityFunctions::print("UCS found a solution!");
+                UtilityFunctions::print("Moves: ", solution.moves.size());
+            } else {
+                UtilityFunctions::print("UCS could not find a solution.");
+            }
+            UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
+            UtilityFunctions::print("Nodes visited: ", solution.node);
+            is_searching = false;
             break;
+        }
         case ASTAR:
             UtilityFunctions::print("A* selected");
             break;
