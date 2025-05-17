@@ -5,6 +5,10 @@
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/file_dialog.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/mesh_instance3d.hpp>
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -28,12 +32,19 @@ private:
     bool is_solved = false;
     AlgoType algo_type = BFS;
 
-    Label* time = nullptr;
+    Label* time_label = nullptr;
 
     Button* solve_button = nullptr;
     Button* reset_button = nullptr;
     Button* load_button = nullptr;
     OptionButton* algo_button = nullptr;
+
+    Ref<PackedScene> car2_template;
+    Ref<PackedScene> car3_template;
+    Ref<StandardMaterial3D> primary_piece_material;
+    Ref<StandardMaterial3D> non_primary_piece_material;
+    Node* cars_container = nullptr;
+    std::vector<Node3D*> spawned_car_nodes;
 
     void _on_solve_button_pressed();
     void _on_reset_button_pressed();
@@ -45,6 +56,9 @@ private:
     void _on_load_dialog_canceled();
 
     bool load_input(String path, vector<Piece>& pieces, Board& board);
+
+    void _clear_all_cars();
+    void _spawn_piece_as_car(const Piece& piece_data);
 
 protected:
     static void _bind_methods();
