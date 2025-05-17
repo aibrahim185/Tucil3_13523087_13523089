@@ -1,0 +1,87 @@
+#pragma once
+
+#include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/variant/string.hpp>
+
+#include <algorithm>
+#include <chrono>
+#include <string>
+#include <vector>
+
+using namespace std;
+using namespace godot;
+
+enum AlgoType {
+    BFS,
+    UCS,
+    ASTAR,
+};
+
+struct Coordinates {
+    int x;
+    int y;
+};
+
+struct Piece {
+    char id;
+    Coordinates coordinates;
+    int size;
+    bool is_vertical;
+    bool is_primary;
+};
+
+struct Board {
+    int rows;
+    int cols;
+    int other_pieces_count;
+    int pixel_size;
+    int pixel_padding;
+    Coordinates exit_coordinates;
+    
+    vector<vector<char>> grid;
+    int piece_padding = 1;
+};
+
+struct PieceMove {
+    Coordinates old_coordinates;
+    Coordinates new_coordinates;
+};
+
+struct Solution {
+    vector<PieceMove> moves;
+    chrono::duration<double, milli> duration;
+    int node;
+    bool is_solved;
+    Solution() : node(0), is_solved(false) {}
+};
+
+struct SearchNode {
+    std::vector<Piece> pieces;
+    Board board;
+    std::vector<PieceMove> path;
+    int val; // nilai heuristik dari state ini
+    
+    char piece_moved; 
+    Coordinates original_pos_moved_piece;
+
+    SearchNode(const std::vector<Piece>& p, const Board& b, const std::vector<PieceMove>& path, int h, char pid = ' ', Coordinates opos = {-1,-1}) : pieces(p), board(b), path(path), val(h), piece_moved(pid), original_pos_moved_piece(opos) {}
+
+    bool operator>(const SearchNode& other) const {
+        return val > other.val;
+    }
+};
+
+class Utils {
+public:
+    static void print_board(Board& board, std:: vector<Piece>& pieces);
+    static godot::String stringToGodotString(const std::string& stdString);
+    static std::string godotStringToString(const godot::String& godotString);
+    
+    static int calculate(const Board& initial_board, const vector<Piece>& current_pieces);
+    static bool is_exit(const Board& initial_board, const std::vector<Piece>& current_pieces);
+    
+    // helper function
+    static const Piece* get_primary_piece(const vector<Piece>& pieces_list);
+    static std::string state_to_string(const std::vector<Piece>& current_pieces);
+    static bool is_cell_clear(const Board& initial_board, int r_check, int c_check, const std::vector<Piece>& pieces_in_state, char moving_piece_id);
+};
