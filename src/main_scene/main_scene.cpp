@@ -1,5 +1,6 @@
 #include "main_scene.hpp"
 
+#include <godot_cpp/classes/engine.hpp>
 #include "../search/bfs/bfs.hpp"
 
 MainScene::MainScene() {}
@@ -20,21 +21,26 @@ void MainScene::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_READY: {
             UtilityFunctions::print("MainScene node created!");
+            if (Engine::get_singleton()->is_editor_hint()) {
+                UtilityFunctions::print("MainScene is in editor mode.");
+                return;
+            }
 
-            solve_button = get_node<Button>("SolveButton");
-            solve_button->connect("pressed", Callable(this, "_on_solve_button_pressed"));
 
-            reset_button = get_node<Button>("ResetButton");
-            reset_button->connect("pressed", Callable(this, "_on_reset_button_pressed"));
+            solve_button = get_node<Button>("UI/SolveButton");
+            if (solve_button) solve_button->connect("pressed", Callable(this, "_on_solve_button_pressed"));
 
-            load_button = get_node<Button>("LoadButton");
-            load_button->connect("pressed", Callable(this, "_on_load_button_pressed"));
+            reset_button = get_node<Button>("UI/ResetButton");
+            if (reset_button) reset_button->connect("pressed", Callable(this, "_on_reset_button_pressed"));
 
-            algo_button = get_node<OptionButton>("AlgoButton");
-            algo_button->connect("item_selected", Callable(this, "_on_algo_button_selected"));
+            load_button = get_node<Button>("UI/LoadButton");
+            if (load_button) load_button->connect("pressed", Callable(this, "_on_load_button_pressed"));
 
-            time = get_node<Label>("TimeLabel");
-            time->set_text("Time: 0.0s");
+            algo_button = get_node<OptionButton>("UI/AlgoButton");
+            if (algo_button) algo_button->connect("item_selected", Callable(this, "_on_algo_button_selected"));
+
+            time = get_node<Label>("UI/TimeLabel");
+            if (time) time->set_text("Time: 0.0s");
 
             break;
         }

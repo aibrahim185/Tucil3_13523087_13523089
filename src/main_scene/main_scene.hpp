@@ -1,6 +1,6 @@
 #pragma once
 
-#include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -16,8 +16,8 @@
 using namespace godot;
 using namespace std;
 
-class MainScene : public Control {
-    GDCLASS(MainScene, Control)
+class MainScene : public Node3D {
+    GDCLASS(MainScene, Node3D)
 
 private:
     vector<Piece> pieces;
