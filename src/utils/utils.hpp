@@ -18,6 +18,7 @@ enum AlgoType {
     BFS,
     UCS,
     ASTAR,
+    IDS,
 };
 
 struct Coordinates {

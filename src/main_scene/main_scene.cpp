@@ -3,6 +3,7 @@
 #include "../search/bfs/bfs.hpp"
 #include "../search/ucs/ucs.hpp"
 #include "../search/astar/astar.hpp"
+#include "../search/ids/ids.hpp"
 
 MainScene::MainScene() {}
 MainScene::~MainScene() {}
@@ -49,6 +50,7 @@ void MainScene::_notification(int p_what) {
                 algo_button->add_item("Greedy Best First Search");
                 algo_button->add_item("Uniform Cost Search");
                 algo_button->add_item("A* Search");
+                algo_button->add_item("Iterative Deepening Search");
                 algo_button->select(0);
             } 
 
@@ -139,7 +141,7 @@ void MainScene::_on_solve_button_pressed() {
             is_searching = false;
             break;
         }
-        case ASTAR:
+        case ASTAR: {
             solution = astar::search_astar(board, pieces);
             is_searching = true;
 
@@ -150,6 +152,19 @@ void MainScene::_on_solve_button_pressed() {
             }
             is_searching = false;
             break;
+        }
+        case IDS: {
+            solution = ids::search_ids(board, pieces);
+            is_searching = true;
+
+            if (is_solved = solution.is_solved) {
+                UtilityFunctions::print("IDS found a solution!");
+            } else {
+                UtilityFunctions::print("IDS could not find a solution.");
+            }
+            is_searching = false;
+            break;
+        }
         default:
             UtilityFunctions::printerr("Unknown algorithm selected");
             break;
@@ -329,6 +344,10 @@ void MainScene::_on_algo_button_selected(int index) {
         case ASTAR:
             UtilityFunctions::print("A* selected");
             algo_type = ASTAR;
+            break;
+        case IDS:
+            UtilityFunctions::print("IDS selected");
+            algo_type = IDS;
             break;
         default:
             UtilityFunctions::printerr("Unknown algorithm selected");
