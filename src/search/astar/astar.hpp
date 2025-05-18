@@ -9,33 +9,31 @@
 
 #include "../../utils/utils.hpp"
 
-struct AStarSearchNode {
-    vector<Piece> pieces;
-    Board board;
-    vector<PieceMove> path;
-    int g_cost;
+struct AStarSearchNode : public SearchNode {
     int h_cost;
-    int f_cost;
+    int actual_g_cost;
 
-    char piece_moved;
-    Coordinates original_position;
+    AStarSearchNode(const vector<Piece>& p,
+                    const Board& b,
+                    const vector<PieceMove>& path_taken,
+                    int g,
+                    int h,
+                    char pid_moved = ' ',
+                    Coordinates opos_moved = {-1,-1})
+        : SearchNode(p, b, path_taken, g + h, pid_moved, opos_moved),
+          h_cost(h),
+          actual_g_cost(g) {}
 
-    AStarSearchNode(const vector<Piece>& p, const Board& b, const vector<PieceMove>& path, int g, int h, char pid = ' ', Coordinates opos = {-1,-1})
-        : pieces(p), board(b), path(path), g_cost(g), h_cost(h), f_cost(g + h), piece_moved(pid), original_position(opos) {}
-
-    // operator untuk priority queue
     bool operator>(const AStarSearchNode& other) const {
-        if (f_cost != other.f_cost) {
-            return f_cost > other.f_cost;
+        if (this->val != other.val) {
+            return this->val > other.val;
         }
-        // jika f_cost sama, bisa menggunakan h_cost sebagai tie-breaker
-        return h_cost > other.h_cost;
+        return this->h_cost > other.h_cost;
     }
 
-    // fungsi untuk mendapatkan representasi string dari state untuk set 'visited'
     string get_state_string() const {
         string s = "";
-        vector<Piece> sorted_pieces = pieces;
+        vector<Piece> sorted_pieces = this->pieces;
 
         sort(sorted_pieces.begin(), sorted_pieces.end(), [](const Piece& a, const Piece& b) {
             return a.id < b.id;
