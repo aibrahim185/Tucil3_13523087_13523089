@@ -10,6 +10,7 @@
 #include <queue>
 #include <set>
 #include <functional>
+#include <stack>
 
 using namespace std;
 using namespace godot;

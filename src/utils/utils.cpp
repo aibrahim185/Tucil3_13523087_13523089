@@ -254,8 +254,6 @@ Solution Utils::search(const Board& initial_board, const vector<Piece>& initial_
     SearchNode initial_node(initial_pieces, initial_board, {}, initial_val);
     pq.push(initial_node);
 
-    godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": Initial value: " + godot::String::num_int64(initial_val));
-
     while (!pq.empty()) {
         SearchNode current_node = pq.top();
         pq.pop();
@@ -267,22 +265,9 @@ Solution Utils::search(const Board& initial_board, const vector<Piece>& initial_
         }
         visited.insert(current_state_str);
 
-        godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": Exploring node. " + params.get_node_exploration(current_node) + ". Path length: " + godot::String::num_int64(static_cast<int64_t>(current_node.path.size())));
-        if (current_node.piece_moved != ' ') {
-            Coordinates new_pos_for_log = {-1, -1};
-            for(const auto& p_state : current_node.pieces) {
-                if (p_state.id == current_node.piece_moved) {
-                    new_pos_for_log = p_state.coordinates;
-                    break;
-                }
-            }
-            godot::UtilityFunctions::print("Moved piece: ", godot::String::utf8(&current_node.piece_moved, 1), " from (", current_node.original_position.x, ",", current_node.original_position.y, ") to (", new_pos_for_log.x, ",", new_pos_for_log.y, ")");
-        }
-
         if (is_exit(current_node.board, current_node.pieces)) {
             result.is_solved = true;
             result.moves = current_node.path;
-            godot::UtilityFunctions::print(godot::String::utf8(params.algorithm_name.c_str()) + ": Solution Found! " + params.get_solution_details(current_node, result) + ". Nodes visited: " + godot::String::num_int64(static_cast<int64_t>(result.node)));
             break;
         }
 

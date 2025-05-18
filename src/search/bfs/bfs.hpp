@@ -1,14 +1,8 @@
 #ifndef BFS_HPP
 #define BFS_HPP
 
-#include <vector>
-#include <queue>
-#include <string>
-#include <set>
-#include <algorithm>
-#include <chrono>
-
 #include "../../main_scene/main_scene.hpp"
+#include "../../utils/utils.hpp"
 
 class bfs {
 public:
