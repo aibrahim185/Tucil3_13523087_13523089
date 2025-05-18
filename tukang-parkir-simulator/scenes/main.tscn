@@ -126,14 +126,6 @@ offset_top = 25.0
 offset_right = -30.0
 offset_bottom = 69.0
 grow_horizontal = 0
-selected = 0
-item_count = 3
-popup/item_0/text = "Greedy Best First Search"
-popup/item_0/id = 0
-popup/item_1/text = "Uniform Cost Search"
-popup/item_1/id = 1
-popup/item_2/text = "A*"
-popup/item_2/id = 2
 
 [node name="TimeLabel" type="Label" parent="UI"]
 anchors_preset = 7

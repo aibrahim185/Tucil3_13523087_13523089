@@ -44,7 +44,13 @@ void MainScene::_notification(int p_what) {
             if (load_button) load_button->connect("pressed", Callable(this, "_on_load_button_pressed"));
 
             algo_button = get_node<OptionButton>("UI/AlgoButton");
-            if (algo_button) algo_button->connect("item_selected", Callable(this, "_on_algo_button_selected"));
+            if (algo_button) {
+                algo_button->connect("item_selected", Callable(this, "_on_algo_button_selected"));
+                algo_button->add_item("Greedy Best First Search");
+                algo_button->add_item("Uniform Cost Search");
+                algo_button->add_item("A* Search");
+                algo_button->select(0);
+            } 
 
             time_label = get_node<Label>("UI/TimeLabel");
             if (time_label) time_label->set_text("Time: 0.0s");
