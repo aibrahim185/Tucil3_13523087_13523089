@@ -59,6 +59,8 @@ void MainScene::_notification(int p_what) {
                 }
             }
 
+            camera_node = get_node<Camera3D>("Camera3D");
+            
             ResourceLoader* rl = ResourceLoader::get_singleton();
             car2_template = rl->load("res://scenes/car2.tscn");
             car3_template = rl->load("res://scenes/car3.tscn");
@@ -66,6 +68,32 @@ void MainScene::_notification(int p_what) {
             non_primary_piece_material = rl->load("res://scenes/non_primary_material.tres");
 
             break;
+        }
+    }
+}
+
+void MainScene::_input(const Ref<InputEvent>& event) {
+    if (!camera_node) {
+        return;
+    }
+
+    Ref<InputEventMouseButton> mb_event = event;
+    if (mb_event.is_valid()) {
+        if (mb_event->is_pressed()) {
+            Vector3 current_position = camera_node->get_global_position();
+            float current_distance_from_origin = current_position.length();
+
+            if (mb_event->get_button_index() == MouseButton::MOUSE_BUTTON_WHEEL_UP) {
+                if (current_distance_from_origin > min_zoom_distance) {
+                    camera_node->translate_object_local(Vector3(0, 0, -zoom_speed));
+                }
+                // UtilityFunctions::print("Zoom In");
+            } else if (mb_event->get_button_index() == MouseButton::MOUSE_BUTTON_WHEEL_DOWN) {
+                if (current_distance_from_origin < max_zoom_distance) {
+                    camera_node->translate_object_local(Vector3(0, 0, zoom_speed));
+                }
+                // UtilityFunctions::print("Zoom Out");
+            }
         }
     }
 }

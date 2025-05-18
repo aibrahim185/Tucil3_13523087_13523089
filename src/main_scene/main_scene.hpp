@@ -1,6 +1,8 @@
 #pragma once
 
 #include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/classes/camera3d.hpp>
+#include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -64,6 +66,11 @@ private:
     bool is_animating_solution = false;
     const float ANIMATION_DURATION = 0.5f;
 
+    Camera3D* camera_node;
+    float zoom_speed = 0.5f;
+    float min_zoom_distance = 2.0f;
+    float max_zoom_distance = 20.0f;
+
     void _animate_next_move();
     void _on_move_animation_finished();
     Vector3 _get_3d_position_for_piece_coords(const Coordinates& piece_top_left_coords, int piece_size, bool is_vertical_piece);
@@ -91,4 +98,5 @@ public:
     ~MainScene();
 
     void _process(double delta) override;
+    void _input(const Ref<InputEvent>& event);
 };
