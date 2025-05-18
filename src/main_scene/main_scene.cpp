@@ -2,6 +2,7 @@
 
 #include "../search/bfs/bfs.hpp"
 #include "../search/ucs/ucs.hpp"
+#include "../search/astar/astar.hpp"
 
 MainScene::MainScene() {}
 MainScene::~MainScene() {}
@@ -86,12 +87,9 @@ void MainScene::_on_solve_button_pressed() {
 
             if (is_solved = solution.is_solved) {
                 UtilityFunctions::print("BFS found a solution!");
-                UtilityFunctions::print("Moves: ", solution.moves.size());
             } else {
                 UtilityFunctions::print("BFS could not find a solution.");
             }
-            UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
-            UtilityFunctions::print("Nodes visited: ", solution.node);
             is_searching = false;
             break;
         }
@@ -101,17 +99,22 @@ void MainScene::_on_solve_button_pressed() {
 
             if (is_solved = solution.is_solved) {
                 UtilityFunctions::print("UCS found a solution!");
-                UtilityFunctions::print("Moves: ", solution.moves.size());
             } else {
                 UtilityFunctions::print("UCS could not find a solution.");
             }
-            UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
-            UtilityFunctions::print("Nodes visited: ", solution.node);
             is_searching = false;
             break;
         }
         case ASTAR:
-            UtilityFunctions::print("A* selected");
+            solution = astar::search_astar(board, pieces);
+            is_searching = true;
+
+            if (is_solved = solution.is_solved) {
+                UtilityFunctions::print("A* found a solution!");
+            } else {
+                UtilityFunctions::print("A* could not find a solution.");
+            }
+            is_searching = false;
             break;
         default:
             UtilityFunctions::printerr("Unknown algorithm selected");
