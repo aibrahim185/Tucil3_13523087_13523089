@@ -151,7 +151,6 @@ void MainScene::_on_solve_button_pressed() {
 
     if (solution.is_solved) {
         is_solved = true;
-        UtilityFunctions::print("Algorithm found a solution!");
         UtilityFunctions::print("Moves: ", solution.moves.size());
         UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
         UtilityFunctions::print("Nodes visited: ", solution.node);
