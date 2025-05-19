@@ -74,9 +74,9 @@ Solution astar::search_astar(const Board& initial_board, const vector<Piece>& in
     AStarSearchNode initial_astar_node(initial_pieces, initial_board, {}, initial_g_cost, initial_h_cost);
     pq.push(initial_astar_node);
 
-    godot::UtilityFunctions::print("ASTAR: Initial g_cost: " + godot::String::num_int64(initial_astar_node.actual_g_cost) +
-                                   ", h_cost: " + godot::String::num_int64(initial_astar_node.h_cost) +
-                                   ", f_cost: " + godot::String::num_int64(initial_astar_node.val)); // val dari base class adalah f_cost
+    // godot::UtilityFunctions::print("ASTAR: Initial g_cost: " + godot::String::num_int64(initial_astar_node.actual_g_cost) +
+    //                                ", h_cost: " + godot::String::num_int64(initial_astar_node.h_cost) +
+    //                                ", f_cost: " + godot::String::num_int64(initial_astar_node.val)); // val dari base class adalah f_cost
 
     while (!pq.empty()) {
         AStarSearchNode current_node = pq.top();
@@ -89,32 +89,32 @@ Solution astar::search_astar(const Board& initial_board, const vector<Piece>& in
         }
         visited_states.insert(current_state_str);
 
-        godot::UtilityFunctions::print("ASTAR: Exploring node. " +
-                                       godot::String("f(n):") + godot::String::num_int64(current_node.val) + // f_cost dari base.val
-                                       godot::String(", g(n):") + godot::String::num_int64(current_node.actual_g_cost) +
-                                       godot::String(", h(n):") + godot::String::num_int64(current_node.h_cost) +
-                                       ". Path length: " + godot::String::num_int64(static_cast<int64_t>(current_node.path.size()))); // path dari base
+        // godot::UtilityFunctions::print("ASTAR: Exploring node. " +
+        //                                godot::String("f(n):") + godot::String::num_int64(current_node.val) + // f_cost dari base.val
+        //                                godot::String(", g(n):") + godot::String::num_int64(current_node.actual_g_cost) +
+        //                                godot::String(", h(n):") + godot::String::num_int64(current_node.h_cost) +
+        //                                ". Path length: " + godot::String::num_int64(static_cast<int64_t>(current_node.path.size()))); // path dari base
         
-        if (current_node.piece_moved != ' ') { // piece_moved dari base
-            Coordinates new_pos_for_log = {-1, -1};
-            for(const auto& p_state : current_node.pieces) { // pieces dari base
-                if (p_state.id == current_node.piece_moved) {
-                    new_pos_for_log = p_state.coordinates;
-                    break;
-                }
-            }
-            godot::UtilityFunctions::print("Moved piece: ", godot::String::utf8(&current_node.piece_moved, 1), 
-                                            " from (", current_node.original_position.x, ",", current_node.original_position.y, 
-                                            ") to (", new_pos_for_log.x, ",", new_pos_for_log.y, ")"); // original_position dari base
-        }
+        // if (current_node.piece_moved != ' ') { // piece_moved dari base
+        //     Coordinates new_pos_for_log = {-1, -1};
+        //     for(const auto& p_state : current_node.pieces) { // pieces dari base
+        //         if (p_state.id == current_node.piece_moved) {
+        //             new_pos_for_log = p_state.coordinates;
+        //             break;
+        //         }
+        //     }
+        //     godot::UtilityFunctions::print("Moved piece: ", godot::String::utf8(&current_node.piece_moved, 1), 
+        //                                     " from (", current_node.original_position.x, ",", current_node.original_position.y, 
+        //                                     ") to (", new_pos_for_log.x, ",", new_pos_for_log.y, ")"); // original_position dari base
+        // }
 
         if (Utils::is_exit(current_node.board, current_node.pieces)) { // board dan pieces dari base
             result.is_solved = true;
             result.moves = current_node.path; // path dari base
-            godot::UtilityFunctions::print("ASTAR: Solution Found! Optimal steps (g_cost): " + 
-                                            godot::String::num_int64(current_node.actual_g_cost) + ". Total moves: " + 
-                                            godot::String::num_int64(result.moves.size()) + ". Nodes visited: " + 
-                                            godot::String::num_int64(static_cast<int64_t>(result.node)));
+            // godot::UtilityFunctions::print("ASTAR: Solution Found! Optimal steps (g_cost): " + 
+            //                                 godot::String::num_int64(current_node.actual_g_cost) + ". Total moves: " + 
+            //                                 godot::String::num_int64(result.moves.size()) + ". Nodes visited: " + 
+            //                                 godot::String::num_int64(static_cast<int64_t>(result.node)));
             break;
         }
 
@@ -131,8 +131,8 @@ Solution astar::search_astar(const Board& initial_board, const vector<Piece>& in
     auto time_end = chrono::high_resolution_clock::now();
     result.duration = chrono::duration<double, milli>(time_end - time_start);
 
-    if (!result.is_solved) {
-        godot::UtilityFunctions::print("ASTAR: No solution found. Nodes visited: " + godot::String::num_int64(static_cast<int64_t>(result.node)));
-    }
+    // if (!result.is_solved) {
+    //     godot::UtilityFunctions::print("ASTAR: No solution found. Nodes visited: " + godot::String::num_int64(static_cast<int64_t>(result.node)));
+    // }
     return result;
 }

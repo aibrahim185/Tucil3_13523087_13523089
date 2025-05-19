@@ -54,8 +54,6 @@ Solution ids::search_ids(const Board& initial_board, const vector<Piece>& initia
     Solution result;
     result.node = 0;
 
-    const int MAX_DEPTH_LIMIT = 100000;
-
     for (int depth_limit = 0; depth_limit <= MAX_DEPTH_LIMIT; ++depth_limit) {        
         SearchNode initial_node(initial_pieces, initial_board, {}, 0);
         set<string> visited_dls;

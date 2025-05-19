@@ -160,7 +160,7 @@ void MainScene::_on_solve_button_pressed() {
             if (is_solved = solution.is_solved) {
                 UtilityFunctions::print("IDS found a solution!");
             } else {
-                UtilityFunctions::print("IDS could not find a solution.");
+                UtilityFunctions::print("IDS could not find a solution with depth: ",  String::num_int64(ids::MAX_DEPTH_LIMIT));
             }
             is_searching = false;
             break;
@@ -588,8 +588,8 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
             Ref<ConcavePolygonShape3D> collision_shape = collision_shape_node->get_shape();
             if (collision_shape.is_valid()) {
                 PackedVector3Array vertices;
-                float half_width = static_cast<float>(board.cols) / 2.0f;
-                float half_depth = static_cast<float>(board.rows) / 2.0f;
+                float half_width = static_cast<float>(board.cols - 0.1f) / 2.0f;
+                float half_depth = static_cast<float>(board.rows - 0.1f) / 2.0f;
 
                 vertices.push_back(Vector3(half_width, 0.0f, half_depth));
                 vertices.push_back(Vector3(-half_width, 0.0f, half_depth));
