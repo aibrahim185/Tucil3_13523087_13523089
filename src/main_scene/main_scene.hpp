@@ -53,6 +53,7 @@ private:
 
     Ref<PackedScene> car2_template;
     Ref<PackedScene> car3_template;
+    Ref<PackedScene> gate_template;
     Ref<StandardMaterial3D> primary_piece_material;
     Ref<StandardMaterial3D> non_primary_piece_material;
     MeshInstance3D* floor = nullptr;

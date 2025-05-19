@@ -72,6 +72,7 @@ void MainScene::_notification(int p_what) {
             ResourceLoader* rl = ResourceLoader::get_singleton();
             car2_template = rl->load("res://scenes/car2.tscn");
             car3_template = rl->load("res://scenes/car3.tscn");
+            gate_template = rl->load("res://scenes/gate.tscn");
             primary_piece_material = rl->load("res://scenes/primary_material.tres");
             non_primary_piece_material = rl->load("res://scenes/non_primary_material.tres");
 
@@ -389,6 +390,22 @@ void MainScene::_on_load_file_selected(const String& path) {
         reset_button->set_disabled(false);
         
         _clear_all_cars();
+
+        
+        Node3D* gate_node = Object::cast_to<Node3D>(gate_template->instantiate());
+        if (gate_node) {
+            floor->add_child(gate_node);
+
+            float actual_exit_col = static_cast<float>(board.exit_coordinates.x - board.piece_padding);
+            float actual_exit_row = static_cast<float>(board.exit_coordinates.y - board.piece_padding);
+
+            float gate_x_pos = actual_exit_col - (static_cast<float>(board.cols) / 2.0f) + 0.5f;
+            float gate_z_pos = actual_exit_row - (static_cast<float>(board.rows) / 2.0f) + 0.5f;
+            float gate_y_pos = 0.5f;
+
+            gate_node->set_position(Vector3(gate_x_pos, gate_y_pos, gate_z_pos));
+        }
+        
         for (const auto& piece_data : this->pieces) {
             _spawn_piece_as_car(piece_data);
         }
@@ -616,9 +633,12 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
 }
 
 void MainScene::_clear_all_cars() {
-    for (Node3D* car_node : spawned_car_nodes) {
-        if (car_node && car_node->get_parent()) {
-            car_node->queue_free();
+    if (floor) {
+        for (int i = floor->get_child_count() - 1; i >= 0; i--) {
+            Node *child = floor->get_child(i);
+            if (child) {
+                child->queue_free();
+            }
         }
     }
     spawned_car_nodes.clear();
