@@ -54,8 +54,14 @@ void MainScene::_notification(int p_what) {
                 algo_button->select(0);
             } 
 
+            node_label = get_node<Label>("UI/NodeLabel");
+            if (node_label) node_label->set_text("Nodes: 0");
+            
             time_label = get_node<Label>("UI/TimeLabel");
             if (time_label) time_label->set_text("Time: 0.0s");
+
+            move_label = get_node<Label>("UI/MoveLabel");
+            if (move_label) move_label->set_text("Moves: 0");
 
             floor = get_node<MeshInstance3D>("StaticBody3D/Floor");
             if (floor) {
@@ -173,11 +179,13 @@ void MainScene::_on_solve_button_pressed() {
 
     if (solution.is_solved) {
         is_solved = true;
-        UtilityFunctions::print("Moves: ", solution.moves.size());
-        UtilityFunctions::print("Time taken: ", solution.duration.count(), " ms");
-        UtilityFunctions::print("Nodes visited: ", solution.node);
+        UtilityFunctions::print("Moves: ", String::num_int64(solution.moves.size()));
+        UtilityFunctions::print("Time taken: ", String::num(solution.duration.count()), " ms");
+        UtilityFunctions::print("Nodes visited: ", String::num_int64(solution.node));
 
+        node_label->set_text("Nodes: " + String::num_int64(solution.node));
         time_label->set_text("Time: " + String::num(solution.duration.count()) + " ms");
+        move_label->set_text("Moves: " + String::num_int64(solution.moves.size()));
         this->current_solution = solution;
         this->current_move_index = 0;
         this->is_animating_solution = true;
@@ -574,7 +582,8 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
     }
 
     if (pieces.size() != board.other_pieces_count + 1) {
-        UtilityFunctions::printerr("Error: Pieces count mismatch. Expected: ", board.other_pieces_count + 1, ", Found: ", pieces.size());
+        UtilityFunctions::printerr("Error: Pieces count mismatch. Expected: ", String::num_int64(board.other_pieces_count + 1), 
+                                    ", Found: ", String::num_int64(pieces.size()));
         return false;
     }
 

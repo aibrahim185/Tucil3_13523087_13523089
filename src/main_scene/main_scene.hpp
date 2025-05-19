@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -44,7 +45,9 @@ private:
     bool is_solved = false;
     AlgoType algo_type = BFS;
 
+    Label* node_label = nullptr;
     Label* time_label = nullptr;
+    Label* move_label = nullptr;
 
     Button* solve_button = nullptr;
     Button* reset_button = nullptr;
@@ -65,12 +68,16 @@ private:
     Solution current_solution;
     int current_move_index = -1;
     bool is_animating_solution = false;
-    const float ANIMATION_DURATION = 0.5f;
+    const float ANIMATION_DURATION = 0.25f;
 
     Camera3D* camera_node;
     float zoom_speed = 0.5f;
     float min_zoom_distance = 2.0f;
     float max_zoom_distance = 20.0f;
+
+    int notification_count = 0;
+	VBoxContainer* notification_container = nullptr;
+	PanelContainer* notification_panel_template = nullptr;
 
     void _animate_next_move();
     void _on_move_animation_finished();
@@ -90,6 +97,8 @@ private:
     void _clear_all_cars();
     void _spawn_piece_as_car(const Piece& piece_data);
 
+    void add_notification(const String& p_message);
+
 protected:
     static void _bind_methods();
     void _notification(int p_what);
@@ -99,5 +108,5 @@ public:
     ~MainScene();
 
     void _process(double delta) override;
-    void _input(const Ref<InputEvent>& event);
+    void _input(const Ref<InputEvent>& event) override;
 };
