@@ -281,5 +281,6 @@ alignment = 2
 layout_mode = 2
 size_flags_vertical = 1
 theme_override_styles/normal = SubResource("StyleBoxFlat_jyhfs")
-text = "ini contoh notifikasi"
+text = "Congratulations! You reached the exit in \" + String::num_int64(current_manual_moves) + \" moves!"
 vertical_alignment = 1
+autowrap_mode = 1

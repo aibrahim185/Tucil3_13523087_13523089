@@ -2,7 +2,11 @@
 
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
+#include <godot_cpp/classes/world3d.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
+#include <godot_cpp/classes/input_event_mouse_motion.hpp>
+#include <godot_cpp/classes/physics_direct_space_state3d.hpp>
+#include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -28,6 +32,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <cmath> 
 
 #include "../utils/utils.hpp"
 
@@ -80,6 +85,14 @@ private:
 	VBoxContainer* notification_container = nullptr;
 	Label* notification_label_template = nullptr;
 
+    Node3D* dragged_car_node = nullptr;
+    Piece* dragged_piece_data = nullptr;
+    Vector3 drag_start_mouse_world_pos;
+    Vector3 drag_start_car_3d_pos;
+    Coordinates drag_start_piece_coords;
+    bool is_dragging_piece = false;
+    int current_manual_moves = 0;
+
     void _animate_next_move();
     void _on_move_animation_finished();
     Vector3 _get_3d_position_for_piece_coords(const Coordinates& piece_top_left_coords, int piece_size, bool is_vertical_piece);
@@ -99,6 +112,9 @@ private:
     void _spawn_piece_as_car(const Piece& piece_data);
 
     void add_notification(const String& p_message);
+
+    Coordinates _get_grid_coords_from_3d_position(const Vector3& pos_3d, int piece_size, bool is_vertical_piece);
+    bool _is_move_valid(const Coordinates& from_coords, const Coordinates& to_coords, char piece_id_moving, bool is_vertical);
 
 protected:
     static void _bind_methods();

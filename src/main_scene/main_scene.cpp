@@ -94,6 +94,7 @@ void MainScene::_notification(int p_what) {
 }
 
 void MainScene::_input(const Ref<InputEvent>& event) {
+    // --- Mouse Wheel Zoom ---
     if (!camera_node) {
         return;
     }
@@ -115,6 +116,193 @@ void MainScene::_input(const Ref<InputEvent>& event) {
                 }
                 // UtilityFunctions::print("Zoom Out");
             }
+        }
+    }
+
+    if (is_animating_solution || is_searching || is_solved) {
+        return;
+    }
+
+    Ref<InputEventMouseMotion> mm_event = event;
+
+    // --- Start Drag Piece ---
+    if (mb_event.is_valid() && mb_event->get_button_index() == MouseButton::MOUSE_BUTTON_LEFT && mb_event->is_pressed()) {
+        if (camera_node && floor) {
+            Vector2 mouse_pos_viewport = get_viewport()->get_mouse_position();
+            PhysicsDirectSpaceState3D* space_state = get_world_3d()->get_direct_space_state();
+
+            if (space_state) {
+                Vector3 ray_origin = camera_node->project_ray_origin(mouse_pos_viewport);
+                Vector3 ray_direction = camera_node->project_ray_normal(mouse_pos_viewport);
+                Vector3 ray_end = ray_origin + ray_direction * 1000.0;
+
+                Ref<PhysicsRayQueryParameters3D> query_params;
+                query_params.instantiate();
+                query_params->set_from(ray_origin);
+                query_params->set_to(ray_end);
+                query_params->set_collide_with_bodies(true);
+
+
+                Dictionary result = space_state->intersect_ray(query_params);
+
+                if (!result.is_empty()) {
+                    Object* collider_obj = result["collider"];
+                    Node3D* hit_node = Object::cast_to<Node3D>(collider_obj);
+
+                    if (hit_node) {
+                        bool piece_found_for_drag = false;
+                        for (auto& p_data_iter : this->pieces) {
+                            auto map_entry = coord_to_car_node_map.find(p_data_iter.coordinates);
+                            if (map_entry != coord_to_car_node_map.end() && map_entry->second == hit_node) {
+                                if (p_data_iter.id == 'K') continue;
+
+                                dragged_piece_data = &p_data_iter;
+                                dragged_car_node = hit_node;
+                                piece_found_for_drag = true;
+                                break;
+                            }
+                        }
+
+                        if (piece_found_for_drag) {
+                            is_dragging_piece = true;
+                            drag_start_car_3d_pos = dragged_car_node->get_position();
+                            drag_start_piece_coords = dragged_piece_data->coordinates;
+
+                            Plane floor_plane(Vector3(0, 1, 0), dragged_car_node->get_global_transform().origin.y);
+                            Vector3 intersection_point_vector3;
+
+                            if (floor_plane.intersects_ray(ray_origin, ray_direction, &intersection_point_vector3)) {
+                                drag_start_mouse_world_pos = intersection_point_vector3;
+                            } else {
+                                is_dragging_piece = false;
+                                dragged_car_node = nullptr;
+                                dragged_piece_data = nullptr;
+                                UtilityFunctions::printerr("Drag Error: Could not project mouse to drag plane (intersects_ray returned false).");
+                                return;
+                            }
+
+                            UtilityFunctions::print("Start dragging piece: ", String::chr(dragged_piece_data->id));
+                            if (solve_button) solve_button->set_disabled(true);
+                            if (reset_button) reset_button->set_disabled(true);
+                            if (load_button) load_button->set_disabled(true);
+                            if (algo_button) algo_button->set_disabled(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // --- Mouse Motion ---
+    else if (mm_event.is_valid() && is_dragging_piece && dragged_car_node && dragged_piece_data) {
+        Vector2 mouse_pos_viewport = get_viewport()->get_mouse_position();
+        Vector3 ray_origin = camera_node->project_ray_origin(mouse_pos_viewport);
+        Vector3 ray_direction = camera_node->project_ray_normal(mouse_pos_viewport);
+
+        Plane floor_plane(Vector3(0, 1, 0), drag_start_car_3d_pos.y);
+        Vector3 current_mouse_world_pos_vector3;
+
+        if (floor_plane.intersects_ray(ray_origin, ray_direction, &current_mouse_world_pos_vector3)) {
+            Vector3 world_delta = current_mouse_world_pos_vector3 - drag_start_mouse_world_pos;
+            Vector3 new_potential_car_pos = drag_start_car_3d_pos;
+
+            if (dragged_piece_data->is_vertical) {
+                new_potential_car_pos.z += world_delta.z;
+            } else {
+                new_potential_car_pos.x += world_delta.x;
+            }
+
+            Coordinates potential_grid_coords = _get_grid_coords_from_3d_position(new_potential_car_pos, dragged_piece_data->size, dragged_piece_data->is_vertical);
+            Coordinates target_move_coords = drag_start_piece_coords;
+            int steps_to_check = 0;
+            int direction_step = 0;
+
+            if (dragged_piece_data->is_vertical) {
+                steps_to_check = potential_grid_coords.y - drag_start_piece_coords.y;
+                direction_step = (steps_to_check == 0) ? 0 : (steps_to_check > 0 ? 1 : -1);
+                for (int s = 1; s <= abs(steps_to_check); ++s) {
+                    Coordinates check_coord = {drag_start_piece_coords.x, drag_start_piece_coords.y + s * direction_step};
+                    if (_is_move_valid(drag_start_piece_coords, check_coord, dragged_piece_data->id, true)) {
+                        target_move_coords.y = check_coord.y;
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                steps_to_check = potential_grid_coords.x - drag_start_piece_coords.x;
+                direction_step = (steps_to_check == 0) ? 0 : (steps_to_check > 0 ? 1 : -1);
+                for (int s = 1; s <= abs(steps_to_check); ++s) {
+                    Coordinates check_coord = {drag_start_piece_coords.x + s * direction_step, drag_start_piece_coords.y};
+                    if (_is_move_valid(drag_start_piece_coords, check_coord, dragged_piece_data->id, false)) {
+                        target_move_coords.x = check_coord.x;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            Vector3 snapped_3d_pos = _get_3d_position_for_piece_coords(target_move_coords, dragged_piece_data->size, dragged_piece_data->is_vertical);
+            dragged_car_node->set_position(snapped_3d_pos);
+        }
+    }
+    // --- Drop ---
+    else if (mb_event.is_valid() && mb_event->get_button_index() == MouseButton::MOUSE_BUTTON_LEFT && !mb_event->is_pressed()) {
+        if (is_dragging_piece && dragged_car_node && dragged_piece_data) {
+            Vector3 final_car_3d_pos = dragged_car_node->get_position();
+            Coordinates final_grid_coords = _get_grid_coords_from_3d_position(final_car_3d_pos, dragged_piece_data->size, dragged_piece_data->is_vertical);
+
+            bool move_was_valid_and_occurred = false;
+            if (final_grid_coords != drag_start_piece_coords) {
+                if (_is_move_valid(drag_start_piece_coords, final_grid_coords, dragged_piece_data->id, dragged_piece_data->is_vertical)){
+                    move_was_valid_and_occurred = true;
+                } else {
+                    move_was_valid_and_occurred = true;
+                }
+            }
+
+
+            if (move_was_valid_and_occurred) {
+                UtilityFunctions::print("Piece ", String::chr(dragged_piece_data->id), " moved from (",
+                                        drag_start_piece_coords.x - board.piece_padding, ",", drag_start_piece_coords.y - board.piece_padding,
+                                        ") to (",
+                                        final_grid_coords.x - board.piece_padding, ",", final_grid_coords.y - board.piece_padding, ")");
+
+                // Update
+                auto map_iter = coord_to_car_node_map.find(drag_start_piece_coords);
+                if (map_iter != coord_to_car_node_map.end()) coord_to_car_node_map.erase(map_iter);
+                dragged_piece_data->coordinates = final_grid_coords;
+                coord_to_car_node_map[final_grid_coords] = dragged_car_node;
+
+                Vector3 confirmed_snapped_3d_pos = _get_3d_position_for_piece_coords(final_grid_coords, dragged_piece_data->size, dragged_piece_data->is_vertical);
+                dragged_car_node->set_position(confirmed_snapped_3d_pos);
+
+                current_manual_moves++;
+                move_label->set_text("Moves: " + String::num_int64(current_manual_moves));
+
+                if (is_solved) {
+                    is_solved = false;
+                    time_label->set_text("Time: 0.0 ms");
+                    node_label->set_text("Nodes: 0");
+                    current_solution.moves.clear();
+                }
+                if (Utils::is_exit(board, pieces)) {
+                    add_notification("Congratulations! You reached the exit in " + String::num_int64(current_manual_moves) + " moves!");
+                    is_solved = true;
+                    if (solve_button) solve_button->set_disabled(true);
+                }
+
+
+            } else {
+                UtilityFunctions::print("Move for piece ", String::chr(dragged_piece_data->id), " was invalid or no change. Reverting.");
+                dragged_car_node->set_position(drag_start_car_3d_pos);
+            }
+
+            // Reset drag
+            is_dragging_piece = false;
+            dragged_car_node = nullptr;
+            dragged_piece_data = nullptr;
+            if (solve_button && !Utils::is_exit(board, pieces)) solve_button->set_disabled(false);
+            if (reset_button) reset_button->set_disabled(false);
+            if (load_button) load_button->set_disabled(false);
+            if (algo_button) algo_button->set_disabled(false);
         }
     }
 }
@@ -407,7 +595,6 @@ void MainScene::_on_load_file_selected(const String& path) {
         reset_button->set_disabled(false);
         
         _clear_all_cars();
-
         
         Node3D* gate_node = Object::cast_to<Node3D>(gate_template->instantiate());
         if (gate_node) {
@@ -674,6 +861,8 @@ void MainScene::_clear_all_cars() {
     node_label->set_text("Nodes: 0");
     time_label->set_text("Time: 0.0 ms");
     move_label->set_text("Moves: 0");
+    current_manual_moves = 0;
+    is_solved = false;
 }
 
 void MainScene::_spawn_piece_as_car(const Piece& piece_data) {
@@ -765,4 +954,96 @@ void MainScene::add_notification(const String& p_message) {
 		if (!notification_container) UtilityFunctions::printerr("Notification Error: Notification container not found.");
 		if (!notification_label_template) UtilityFunctions::printerr("Notification Error: Notification panel template not found.");
 	}
+}
+
+Coordinates MainScene::_get_grid_coords_from_3d_position(const Vector3& car_3d_pos, int piece_size, bool is_vertical_piece) {
+    float actual_col_float, actual_row_float;
+
+    if (is_vertical_piece) {
+        actual_col_float = car_3d_pos.x + static_cast<float>(board.cols) / 2.0f - 0.5f;
+        if (piece_size >= 2) {
+             actual_row_float = car_3d_pos.z + (static_cast<float>(board.rows) - (static_cast<float>(piece_size - 2.0f))) / 2.0f - 1.0f;
+        } else {
+            actual_row_float = car_3d_pos.z + static_cast<float>(board.rows) / 2.0f - 0.5f;
+        }
+    } else { // Horizontal
+        actual_row_float = car_3d_pos.z + static_cast<float>(board.rows) / 2.0f - 0.5f;
+        if (piece_size >= 2) {
+            actual_col_float = car_3d_pos.x + (static_cast<float>(board.cols) - (static_cast<float>(piece_size - 2.0f))) / 2.0f - 1.0f;
+        } else {
+            actual_col_float = car_3d_pos.x + static_cast<float>(board.cols) / 2.0f - 0.5f;
+        }
+    }
+
+    int actual_col = static_cast<int>(std::round(actual_col_float));
+    int actual_row = static_cast<int>(std::round(actual_row_float));
+
+    Coordinates grid_coords_with_padding;
+    grid_coords_with_padding.x = actual_col + board.piece_padding;
+    grid_coords_with_padding.y = actual_row + board.piece_padding;
+
+    return grid_coords_with_padding;
+}
+
+bool MainScene::_is_move_valid(const Coordinates& from_coords, const Coordinates& to_coords, char piece_id_moving, bool is_vertical_piece_moving) {
+    if (from_coords.x == to_coords.x && from_coords.y == to_coords.y) {
+        return true;
+    }
+
+    const Piece* p_moving_data = nullptr;
+    for(const auto& p_iter : this->pieces){
+        if(p_iter.id == piece_id_moving) {
+            p_moving_data = &p_iter;
+            break;
+        }
+    }
+    if (!p_moving_data) {
+        UtilityFunctions::printerr("_is_move_valid Error: Piece data not found for ID: ", String::chr(piece_id_moving));
+        return false;
+    }
+
+    if (is_vertical_piece_moving) {
+        if (from_coords.x != to_coords.x) return false;
+
+        int dir_y = (to_coords.y > from_coords.y) ? 1 : -1;
+        int steps = abs(to_coords.y - from_coords.y);
+
+        for (int i = 1; i <= steps; ++i) {
+            int next_cell_y_of_top_left = from_coords.y + i * dir_y;
+
+            int check_cell_r;
+            if (dir_y > 0) {
+                check_cell_r = from_coords.y + p_moving_data->size -1 + i * dir_y;
+            } else {
+                check_cell_r = from_coords.y + i * dir_y;
+            }
+            int check_cell_c = from_coords.x;
+
+            if (!Utils::is_cell_clear(board, check_cell_r, check_cell_c, this->pieces, piece_id_moving)) {
+                return false;
+            }
+        }
+    } else {
+        if (from_coords.y != to_coords.y) return false;
+
+        int dir_x = (to_coords.x > from_coords.x) ? 1 : -1;
+        int steps = abs(to_coords.x - from_coords.x);
+
+        for (int i = 1; i <= steps; ++i) {
+            int next_cell_x_of_top_left = from_coords.x + i * dir_x;
+            
+            int check_cell_c;
+            if (dir_x > 0) {
+                check_cell_c = from_coords.x + p_moving_data->size -1 + i * dir_x;
+            } else {
+                check_cell_c = from_coords.x + i * dir_x;
+            }
+            int check_cell_r = from_coords.y;
+            
+            if (!Utils::is_cell_clear(board, check_cell_r, check_cell_c, this->pieces, piece_id_moving)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
