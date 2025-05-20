@@ -74,6 +74,12 @@ void MainScene::_notification(int p_what) {
             }
 
             camera_node = get_node<Camera3D>("Camera3D");
+
+            notification_container = get_node<VBoxContainer>("UI/MarginContainer/ScrollContainer/VBoxContainer");
+			notification_label_template = get_node<Label>("UI/MarginContainer/ScrollContainer/VBoxContainer/Label");
+			if (notification_container && notification_label_template) {
+				notification_label_template->set_visible(false);
+			}
             
             ResourceLoader* rl = ResourceLoader::get_singleton();
             car2_template = rl->load("res://scenes/car2.tscn");
@@ -129,9 +135,9 @@ void MainScene::_on_solve_button_pressed() {
             is_searching = true;
 
             if (is_solved = solution.is_solved) {
-                UtilityFunctions::print("BFS found a solution!");
+                add_notification("BFS found a solution!");
             } else {
-                UtilityFunctions::print("BFS could not find a solution.");
+                add_notification("BFS could not find a solution.");
             }
             is_searching = false;
             break;
@@ -141,9 +147,9 @@ void MainScene::_on_solve_button_pressed() {
             is_searching = true;
 
             if (is_solved = solution.is_solved) {
-                UtilityFunctions::print("UCS found a solution!");
+                add_notification("UCS found a solution!");
             } else {
-                UtilityFunctions::print("UCS could not find a solution.");
+                add_notification("UCS could not find a solution.");
             }
             is_searching = false;
             break;
@@ -153,9 +159,9 @@ void MainScene::_on_solve_button_pressed() {
             is_searching = true;
 
             if (is_solved = solution.is_solved) {
-                UtilityFunctions::print("A* found a solution!");
+                add_notification("A* found a solution!");
             } else {
-                UtilityFunctions::print("A* could not find a solution.");
+                add_notification("A* could not find a solution.");
             }
             is_searching = false;
             break;
@@ -165,9 +171,9 @@ void MainScene::_on_solve_button_pressed() {
             is_searching = true;
 
             if (is_solved = solution.is_solved) {
-                UtilityFunctions::print("IDS found a solution!");
+                add_notification("IDS found a solution!");
             } else {
-                UtilityFunctions::print("IDS could not find a solution with depth: ",  String::num_int64(ids::MAX_DEPTH_LIMIT));
+                add_notification("IDS could not find a solution.");
             }
             is_searching = false;
             break;
@@ -182,6 +188,9 @@ void MainScene::_on_solve_button_pressed() {
         UtilityFunctions::print("Moves: ", String::num_int64(solution.moves.size()));
         UtilityFunctions::print("Time taken: ", String::num(solution.duration.count()), " ms");
         UtilityFunctions::print("Nodes visited: ", String::num_int64(solution.node));
+        add_notification("Moves: " + String::num_int64(solution.moves.size()) + "\n" +
+                         "Time taken: " + String::num(solution.duration.count()) + " ms\n" +
+                         "Nodes visited: " + String::num_int64(solution.node));
 
         node_label->set_text("Nodes: " + String::num_int64(solution.node));
         time_label->set_text("Time: " + String::num(solution.duration.count()) + " ms");
@@ -431,13 +440,15 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
 
     std::ifstream file(Utils::godotStringToString(path));
     if (!file.is_open()) {
-        UtilityFunctions::printerr("Error: Tidak dapat membuka file: ", path);
+        UtilityFunctions::printerr("Error: Failed to open file: ", path);
+        add_notification("Failed to open file: " + path);
         return false;
     }
 
     // 1. Baca dimensi papan (A B)
     if (!(file >> board.rows >> board.cols)) {
-        UtilityFunctions::printerr("Error: Gagal membaca dimensi papan dari file.");
+        UtilityFunctions::printerr("Error: Failed to read board dimensions from file.");
+        add_notification("Failed to read board dimensions from file.");
         file.close();
         return false;
     }
@@ -445,7 +456,8 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
 
     // 2. Baca banyak piece BUKAN primary piece (N)
     if (!(file >> board.other_pieces_count)) {
-        UtilityFunctions::printerr("Error: Gagal membaca jumlah piece non-primary (N) dari file.");
+        UtilityFunctions::printerr("Error: Failed to read non-primary pieces count (N) from file.");
+        add_notification("Failed to read non-primary pieces count (N) from file.");
         file.close();
         return false;
     }
@@ -584,11 +596,13 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
     if (pieces.size() != board.other_pieces_count + 1) {
         UtilityFunctions::printerr("Error: Pieces count mismatch. Expected: ", String::num_int64(board.other_pieces_count + 1), 
                                     ", Found: ", String::num_int64(pieces.size()));
+        add_notification("Pieces count mismatch. Expected: " + String::num_int64(board.other_pieces_count + 1) + ", Found: " + String::num_int64(pieces.size()));
         return false;
     }
 
     if (!local_is_keluar_found) {
         UtilityFunctions::printerr("Error: K not found in the grid.");
+        add_notification("K not found in the grid.");
         return false;
     }
 
@@ -635,9 +649,13 @@ bool MainScene::load_input(String path, vector<Piece>& pieces, Board& board) {
             if (!collision_shape_node) UtilityFunctions::printerr("Failed to find CollisionShape3D node at StaticBody3D/CollisionShape3D.");
         }
     } else {
-        UtilityFunctions::printerr("Invalid board dimensions for setting floor size: rows=", board.rows, ", cols=", board.cols);
+        add_notification("Invalid board dimensions for setting floor size: rows=" + String::num_int64(board.rows) + ", cols=" + String::num_int64(board.cols));
     }
 
+    add_notification("Board size: " + String::num_int64(board.rows) + "x" + String::num_int64(board.cols) + "\n" +
+                     "Pieces count: " + String::num_int64(pieces.size()) + "\n" +
+                     "Exit coordinates: (" + String::num_int64(board.exit_coordinates.x) + ", " + String::num_int64(board.exit_coordinates.y) + ")");
+    
     return true;
 }
 
@@ -652,6 +670,10 @@ void MainScene::_clear_all_cars() {
     }
     spawned_car_nodes.clear();
     coord_to_car_node_map.clear();
+
+    node_label->set_text("Nodes: 0");
+    time_label->set_text("Time: 0.0 ms");
+    move_label->set_text("Moves: 0");
 }
 
 void MainScene::_spawn_piece_as_car(const Piece& piece_data) {
@@ -709,4 +731,38 @@ void MainScene::_spawn_piece_as_car(const Piece& piece_data) {
     }
 
     UtilityFunctions::print("Spawned car: ", String::chr(piece_data.id), " at (", actual_col, ", ", actual_row, ") size: ", piece_data.size, " is_vertical: ", piece_data.is_vertical, " is_primary: ", piece_data.is_primary);
+}
+
+
+void MainScene::add_notification(const String& p_message) {
+	UtilityFunctions::print("Adding notification: ", p_message);
+
+	if (notification_container && notification_label_template) {
+		Label* new_notification = Object::cast_to<Label>(notification_label_template->duplicate());
+		if (new_notification) {
+            new_notification->set_name("Notification_" + String::num_int64(notification_count++));
+            new_notification->set_text(p_message);
+			new_notification->set_visible(true);
+			notification_container->add_child(new_notification);
+
+			const double notification_duration = 5.0;
+
+			Ref<SceneTreeTimer> timer = get_tree()->create_timer(notification_duration);
+
+			if (timer.is_valid()) {
+				Callable cleanup_callable = Callable(new_notification, StringName("queue_free"));
+
+				timer->connect("timeout", cleanup_callable);
+
+			} else {
+                UtilityFunctions::printerr("Notification Error: Failed to create SceneTreeTimer.");
+			}
+
+		} else {
+			UtilityFunctions::printerr("Notification Error: Failed to duplicate notification label template.");
+		}
+	} else {
+		if (!notification_container) UtilityFunctions::printerr("Notification Error: Notification container not found.");
+		if (!notification_label_template) UtilityFunctions::printerr("Notification Error: Notification panel template not found.");
+	}
 }

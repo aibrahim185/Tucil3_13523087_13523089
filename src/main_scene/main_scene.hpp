@@ -3,7 +3,6 @@
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
-#include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -18,6 +17,8 @@
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/classes/property_tweener.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -77,7 +78,7 @@ private:
 
     int notification_count = 0;
 	VBoxContainer* notification_container = nullptr;
-	PanelContainer* notification_panel_template = nullptr;
+	Label* notification_label_template = nullptr;
 
     void _animate_next_move();
     void _on_move_animation_finished();
