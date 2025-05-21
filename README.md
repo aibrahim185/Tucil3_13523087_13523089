@@ -51,6 +51,13 @@ Sebelum menjalankan program, pastikan perangkat lunak berikut telah terinstal:
     Atau melalui manajer paket sistem (misalnya, `sudo apt install scons` di Debian/Ubuntu).
 
 ## Cara Menjalankan Program
+
+## Menggunakan executable
+### 1. Buka link berikut:
+https://drive.google.com/drive/folders/1Sd69VJZk0LDCM4CSdEZEjOJCBhU_dV-9?usp=drive_link
+### 2. Download file yang tersedia dan extract zip yang diberikan, kemudian jalankan executable .exe untuk memulai program
+
+## Menggunakan git
 ### 1. Kloning Repositori
 ```bash
 git clone https://github.com/aibrahim185/Tucil3_13523087_13523089.git
