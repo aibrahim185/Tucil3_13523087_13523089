@@ -1,7 +1,8 @@
 <h1 align="center">Tugas Kecil 3 IF2211 Strategi Algoritma</h1>
 <h1 align="center">➡️ Penyelesaian Puzzle Rush Hour Menggunakan Algoritma Pathfinding ⬅️</h1>
 
-![alt text](<img/image.png>)
+![godot_OTsxdE05Bq](https://github.com/user-attachments/assets/270d7419-f814-4f01-8147-292e0d57bf29)
+
 
 ## Daftar Isi
 1. [Informasi Umum](#informasi-umum)
@@ -12,6 +13,7 @@
 6. [Cara Menjalankan Program](#cara-menjalankan-program)
 7. [Struktur Proyek](#struktur-proyek)
 8. [Status Proyek](#status-proyek)
+9. [Tangkapan Layar](#tangkapan-layar)
 
 ## Informasi Umum
 Proyek ini bertujuan untuk mengimplementasikan dan menganalisis berbagai algoritma pathfinding dalam menyelesaikan puzzle klasik Rush Hour. Rush Hour adalah permainan puzzle logika berbasis grid dengan pemain harus menggeser kendaraan di dalam area terbatas agar mobil utama (target) dapat keluar melalui pintu keluar yang telah ditentukan. Tantangannya adalah mencapai tujuan ini dengan jumlah langkah seminimal mungkin.
@@ -55,7 +57,7 @@ Sebelum menjalankan program, pastikan perangkat lunak berikut telah terinstal:
 ## Menggunakan executable
 ### 1. Buka link berikut:
 https://drive.google.com/drive/folders/1Sd69VJZk0LDCM4CSdEZEjOJCBhU_dV-9?usp=drive_link
-### 2. Download file yang tersedia dan extract zip yang diberikan, kemudian jalankan executable .exe untuk memulai program
+### 2. Download file yang tersedia dan extract zip yang diberikan, kemudian jalankan executable .exe/.apk untuk memulai program
 
 ## Menggunakan git
 ### 1. Kloning Repositori
@@ -159,4 +161,9 @@ python -m scons
 ```
 
 ## Status Proyek
-Proyek ini telah selesai dengan bonus yang diterapkan berupa algoritma tambahan dan GUI.
+Proyek ini telah selesai dengan bonus yang diterapkan berupa algoritma tambahan dan GUI di Windows dan Android.
+
+## Tangkapan Layar
+![godot_PcUjhrjF8p](https://github.com/user-attachments/assets/3ae5d1e0-1a2a-436e-8c97-f48485325843)
+
+![godot_aRak7vzsOb](https://github.com/user-attachments/assets/6a3b04f4-1d03-414b-8439-cd9dc0f18325)
